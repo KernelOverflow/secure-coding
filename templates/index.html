@@ -1,6 +1,13 @@
 {% extends "base.html" %}
-{% block title %}환영합니다{% endblock %}
+{% block title %}파일마켓{% endblock %}
 {% block content %}
-<h1>My Market에 오신 것을 환영합니다</h1>
-<p><a href="{{ url_for('login') }}">로그인</a> 또는 <a href="{{ url_for('register') }}">회원가입</a> 해주세요.</p>
+<section class="hero">
+  <p class="eyebrow">Tiny Second-hand Shopping Platform</p>
+  <h1>안전하게 연결되는<br>작은 중고거래 마켓</h1>
+  <p>상품을 등록하고, 판매자와 1:1로 대화하고, 서비스 내부 원화 잔액으로 거래해 보세요.</p>
+  <div class="actions">
+    <a class="button" href="{{ url_for('auth.register') }}">회원가입</a>
+    <a class="button button-secondary" href="{{ url_for('auth.login') }}">로그인</a>
+  </div>
+</section>
 {% endblock %}

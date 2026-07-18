@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ '상품 수정' if product else '상품 등록' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Product</p><h1>{{ '상품 수정' if product else '상품 등록' }}</h1></div></div>
+<form method="post" enctype="multipart/form-data" class="panel form-panel form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field"><label for="title">상품명</label><input id="title" name="title" minlength="2" maxlength="100" value="{{ product.title if product else '' }}" required></div>
+  <div class="field"><label for="description">설명</label><textarea id="description" name="description" minlength="5" maxlength="2000" required>{{ product.description if product else '' }}</textarea></div>
+  <div class="field"><label for="price">가격</label><input id="price" name="price" inputmode="numeric" value="{{ product.price_krw if product else '' }}" required><small>1원 이상, 최대 1,000,000,000원</small></div>
+  <div class="field"><label for="image">상품 사진</label><input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp"><small>JPEG, PNG, WebP / 최대 6MB / 5,000×5,000px 이하</small></div>
+  <button class="button" type="submit">저장</button>
+</form>
+{% endblock %}

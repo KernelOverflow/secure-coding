@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}회원가입{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Account</p><h1>회원가입</h1></div></div>
+<form method="post" class="panel form-panel form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field"><label for="username">사용자명</label><input id="username" name="username" minlength="3" maxlength="20" autocomplete="username" required><small>한글, 영문, 숫자, 밑줄 3~20자</small></div>
+  <div class="field"><label for="password">비밀번호</label><input id="password" type="password" name="password" minlength="10" maxlength="128" autocomplete="new-password" required><small>영문, 숫자, 특수문자를 포함한 10자 이상</small></div>
+  <button class="button" type="submit">가입하기</button>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}내 정보{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">My page</p><h1>{{ current_user.username }}</h1><p>현재 잔액 {{ current_user.balance_krw|krw }}</p></div></div>
+<div class="grid">
+  <form method="post" class="panel form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>소개글 수정</h2>
+    <div class="field"><label for="bio">소개글</label><textarea id="bio" name="bio" maxlength="500">{{ current_user.bio }}</textarea></div>
+    <button class="button" type="submit">저장</button>
+  </form>
+  <form method="post" action="{{ url_for('auth.change_password') }}" class="panel form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>비밀번호 변경</h2>
+    <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
+    <div class="field"><label for="new_password">새 비밀번호</label><input id="new_password" type="password" name="new_password" minlength="10" maxlength="128" autocomplete="new-password" required></div>
+    <button class="button" type="submit">비밀번호 변경</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}회원 찾기{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Members</p><h1>회원 찾기</h1><p>사용자명 또는 소개글로 검색해 송금할 회원을 찾습니다.</p></div></div>
+<form method="get" class="search-bar">
+  <input name="q" value="{{ keyword }}" maxlength="20" placeholder="사용자명 검색" aria-label="사용자 검색">
+  <button class="button" type="submit">검색</button>
+</form>
+<div class="grid">
+  {% for user in users %}
+  <article class="card">
+    <span class="status status-{{ user.status }}">{{ user.status }}</span>
+    <h2><a href="{{ url_for('users.view_user', user_id=user.id) }}">{{ user.username }}</a></h2>
+    <p>{{ user.bio or '소개글이 없습니다.' }}</p>
+  </article>
+  {% else %}{% if keyword %}<div class="empty-state"><h2>검색 결과가 없습니다.</h2></div>{% endif %}{% endfor %}
+</div>
+{% endblock %}

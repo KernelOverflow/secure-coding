@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}신고 관리{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Administration</p><h1>신고 관리</h1></div>{% include "admin/_nav.html" %}</div>
+<div class="table-wrap"><table><thead><tr><th>신고자</th><th>대상</th><th>사유</th><th>상태</th><th>처리</th></tr></thead><tbody>
+{% for report in reports %}<tr><td>{{ report.reporter.username }}</td><td>{{ report.target_type }} / {{ report.target_id }}</td><td>{{ report.reason }}</td><td>{{ report.status }}</td><td>{% if report.status == 'pending' %}<form class="compact-form" method="post" action="{{ url_for('admin.resolve_report', report_id=report.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="resolved">조치 완료</option><option value="dismissed">기각</option></select><input name="reason" minlength="5" maxlength="500" placeholder="처리 사유" required><button class="button button-small" type="submit">처리</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}회원 관리{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Administration</p><h1>회원 관리</h1></div>{% include "admin/_nav.html" %}</div>
+<div class="table-wrap"><table><thead><tr><th>사용자</th><th>역할</th><th>상태</th><th>잔액</th><th>상태 변경</th></tr></thead><tbody>
+{% for user in users %}<tr><td><a href="{{ url_for('users.view_user', user_id=user.id) }}">{{ user.username }}</a></td><td>{{ user.role }}</td><td>{{ user.status }}</td><td>{{ user.balance_krw|krw }}</td><td><form class="compact-form" method="post" action="{{ url_for('admin.update_user_status', user_id=user.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="active">active</option><option value="suspended">suspended</option><option value="banned">banned</option></select><input name="reason" minlength="5" maxlength="500" placeholder="조치 사유" required><button class="button button-small" type="submit">변경</button></form></td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

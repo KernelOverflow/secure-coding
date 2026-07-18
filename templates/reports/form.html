@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}신고하기{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Report</p><h1>신고하기</h1><p>대상: {{ target.username if target_type == 'user' else target.title }}</p></div></div>
+<form method="post" class="panel form-panel form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="target_type" value="{{ target_type }}"><input type="hidden" name="target_id" value="{{ target_id }}">
+  <div class="field"><label for="reason">상세 신고 사유</label><textarea id="reason" name="reason" minlength="10" maxlength="1000" required></textarea><small>관리자가 판단할 수 있도록 10자 이상 구체적으로 작성해 주세요.</small></div>
+  <button class="button button-danger" type="submit">신고 접수</button>
+</form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ product.title }}{% endblock %}
+{% block content %}
+<div class="product-detail">
+  <section>
+    {% if product.image_filename %}<img class="product-image" src="{{ url_for('products.uploaded_image', filename=product.image_filename) }}" alt="{{ product.title }} 상품 사진">
+    {% else %}<div class="product-image image-placeholder">등록된 사진이 없습니다.</div>{% endif %}
+  </section>
+  <section class="panel">
+    <span class="status status-{{ product.status }}">{{ product.status }}</span>
+    <h1>{{ product.title }}</h1>
+    <p class="price">{{ product.price_krw|krw }}</p>
+    <p>판매자: <a href="{{ url_for('users.view_user', user_id=product.seller.id) }}">{{ product.seller.username }}</a></p>
+    <p class="detail-box">{{ product.description }}</p>
+    <div class="actions">
+      {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+        <form method="post" action="{{ url_for('chat.start_conversation', product_id=product.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-secondary" type="submit">판매자에게 문의</button></form>
+        <a class="button button-secondary" href="{{ url_for('reports.create_report', target_type='product', target_id=product.id) }}">상품 신고</a>
+      {% endif %}
+      {% if current_user.is_authenticated and (current_user.id == product.seller_id or current_user.is_admin) %}
+        <a class="button button-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>
+        <form method="post" action="{{ url_for('products.delete_product', product_id=product.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-danger" type="submit">삭제</button></form>
+      {% endif %}
+    </div>
+    {% if current_user.is_authenticated and current_user.id != product.seller_id and product.status == 'active' %}
+    <form method="post" action="{{ url_for('products.purchase', product_id=product.id) }}" class="form-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="idempotency_key" value="{{ purchase_key }}">
+      <div class="field"><label for="current_password">구매 확인 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
+      <button class="button" type="submit">{{ product.price_krw|krw }} 결제하기</button>
+    </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

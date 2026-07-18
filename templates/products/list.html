@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}상품 목록{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Marketplace</p><h1>상품 찾기</h1><p>상품명을 눌러 상세 정보와 판매자를 확인하세요.</p></div>
+  {% if current_user.is_authenticated %}<a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a>{% endif %}
+</div>
+<form method="get" class="search-bar" role="search">
+  <input name="q" value="{{ keyword }}" maxlength="100" placeholder="상품명 또는 설명 검색" aria-label="검색어">
+  <input name="min_price" value="{{ minimum or '' }}" inputmode="numeric" placeholder="최소 가격" aria-label="최소 가격">
+  <input name="max_price" value="{{ maximum or '' }}" inputmode="numeric" placeholder="최대 가격" aria-label="최대 가격">
+  <select name="status" aria-label="판매 상태">
+    <option value="">전체 상태</option>
+    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>판매 중</option>
+    <option value="sold" {% if selected_status == 'sold' %}selected{% endif %}>판매 완료</option>
+  </select>
+  <button class="button" type="submit">검색</button>
+</form>
+{% if products %}
+<div class="grid">
+  {% for product in products %}
+    <a class="card card-link" href="{{ url_for('products.view_product', product_id=product.id) }}">
+      <span class="status status-{{ product.status }}">{{ '판매 중' if product.status == 'active' else '판매 완료' }}</span>
+      <h2>{{ product.title }}</h2>
+    </a>
+  {% endfor %}
+</div>
+{% else %}<div class="empty-state"><h2>조건에 맞는 상품이 없습니다.</h2></div>{% endif %}
+{% endblock %}

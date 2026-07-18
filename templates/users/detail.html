@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Member</p><h1>{{ user.username }}</h1><p>{{ user.bio or '소개글이 없습니다.' }}</p></div><span class="status status-{{ user.status }}">{{ user.status }}</span></div>
+{% if user.id != current_user.id %}
+<div class="grid">
+  <form method="post" action="{{ url_for('users.transfer', user_id=user.id) }}" class="panel form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="idempotency_key" value="{{ transfer_key }}">
+    <h2>원화 잔액 송금</h2>
+    <div class="field"><label for="amount">금액</label><input id="amount" name="amount" inputmode="numeric" required></div>
+    <div class="field"><label for="note">송금 메모</label><input id="note" name="note" maxlength="200" value="회원 간 송금"></div>
+    <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
+    <button class="button" type="submit">송금</button>
+  </form>
+  <section class="panel"><h2>신고</h2><p>부적절한 활동을 발견했다면 상세한 사유와 함께 신고해 주세요.</p><a class="button button-secondary" href="{{ url_for('reports.create_report', target_type='user', target_id=user.id) }}">사용자 신고</a></section>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,113 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>{% block title %}My Market{% endblock %}</title>
-  <!-- Socket.IO 클라이언트 라이브러리 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-  <style>
-    /* Notion 스타일 미니멀 디자인 */
-    body {
-      background-color: #F7F7F7;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
-    nav {
-      background-color: #fff;
-      padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    nav a {
-      text-decoration: none;
-      color: #555;
-      margin-right: 15px;
-      font-weight: 500;
-    }
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      background-color: #fff;
-      padding: 40px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      border-radius: 8px;
-    }
-    h1, h2, h3 {
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007AFF;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #005BB5;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 10px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .flash {
-      background-color: #FFECB3;
-      padding: 10px;
-      border: 1px solid #FFB74D;
-      border-radius: 4px;
-      margin-bottom: 20px;
-    }
-    /* 채팅 영역 스타일 */
-    #chat {
-      margin-top: 40px;
-    }
-    #messages {
-      height: 200px;
-      overflow-y: auto;
-      border: 1px solid #e0e0e0;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      background-color: #fafafa;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}파일마켓{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <nav>
-    {% if session.get('user_id') %}
-      <a href="{{ url_for('dashboard') }}">대시보드</a>
-      <a href="{{ url_for('profile') }}">프로필</a>
-      <a href="{{ url_for('report') }}">신고하기</a>
-      <a href="{{ url_for('logout') }}">로그아웃</a>
-    {% else %}
-      <a href="{{ url_for('login') }}">로그인</a>
-      <a href="{{ url_for('register') }}">회원가입</a>
-    {% endif %}
-  </nav>
-  <div class="container">
-    {% with messages = get_flashed_messages() %}
+  <header class="site-header">
+    <nav class="nav-wrap" aria-label="주 메뉴">
+      <a class="brand" href="{{ url_for('products.list_products') }}">파일마켓</a>
+      <button class="nav-toggle" type="button" aria-label="메뉴 열기" data-nav-toggle>☰</button>
+      <div class="nav-links" data-nav-links>
+        <a href="{{ url_for('products.list_products') }}">상품</a>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('products.my_products') }}">내 상품</a>
+          <a href="{{ url_for('users.search_users') }}">회원 찾기</a>
+          <a href="{{ url_for('chat.list_conversations') }}">1:1 채팅</a>
+          <a href="{{ url_for('users.transactions') }}">거래 내역</a>
+          <a href="{{ url_for('reports.my_reports') }}">신고 내역</a>
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}">관리자</a>
+          {% endif %}
+          <a href="{{ url_for('auth.profile') }}">내 정보</a>
+          <span class="balance">잔액 {{ current_user.balance_krw|krw }}</span>
+          <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="link-button" type="submit">로그아웃</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">로그인</a>
+          <a href="{{ url_for('auth.register') }}">회원가입</a>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li class="flash">{{ message }}</li>
+        <div aria-live="polite">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
           {% endfor %}
-        </ul>
+        </div>
       {% endif %}
     {% endwith %}
     {% block content %}{% endblock %}
-  </div>
+  </main>
+
+  <footer class="footer">
+    <p>모든 금액은 실제 화폐가 아닌 서비스 내부 원화 잔액입니다.</p>
+  </footer>
+  <script src="{{ url_for('static', filename='js/navigation.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

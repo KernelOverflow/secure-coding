@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}거래 내역{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Transactions</p><h1>거래 내역</h1><p>완료된 거래는 수정·삭제되지 않으며 정정은 새 거래로 기록됩니다.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>시각</th><th>구분</th><th>보낸 사용자</th><th>받은 사용자</th><th>금액</th><th>메모</th></tr></thead><tbody>
+{% for item in transactions %}<tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.kind }}</td><td>{{ item.sender.username if item.sender else '-' }}</td><td>{{ item.receiver.username if item.receiver else '-' }}</td><td>{{ item.amount_krw|krw }}</td><td>{{ item.note }}</td></tr>
+{% else %}<tr><td colspan="6">거래 내역이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

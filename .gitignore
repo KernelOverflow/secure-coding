@@ -1,3 +1,15 @@
 *.db
+*.db-shm
+*.db-wal
 *.pptx
-__pycache__
+__pycache__/
+*.py[cod]
+.env
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+instance/
+uploads/
+*.log
