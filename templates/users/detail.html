@@ -1,7 +1,13 @@
+{# 다른 회원의 공개 프로필과 재인증 송금 폼, 신고 진입 버튼을 보여준다 #}
 {% extends "base.html" %}
-{% block title %}{{ user.username }}{% endblock %}
+{% block title %}{{ user.nickname }}{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Member</p><h1>{{ user.username }}</h1><p>{{ user.bio or '소개글이 없습니다.' }}</p></div><span class="status status-{{ user.status }}">{{ user.status }}</span></div>
+<div class="page-head profile-heading panel">
+  {% if user.profile_image_filename %}<img class="profile-avatar profile-avatar-large" src="{{ url_for('users.profile_image', filename=user.profile_image_filename) }}" alt="{{ user.nickname }} 프로필 사진">
+  {% else %}<div class="profile-avatar profile-avatar-large profile-avatar-placeholder" aria-hidden="true">{{ user.nickname[:1] }}</div>{% endif %}
+  <div class="profile-heading-text"><p class="eyebrow">Member</p><h1>{{ user.nickname }}</h1><p>{{ user.bio or '소개글이 없습니다.' }}</p></div>
+  {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status }}</span>{% endif %}
+</div>
 {% if user.id != current_user.id %}
 <div class="grid">
   <form method="post" action="{{ url_for('users.transfer', user_id=user.id) }}" class="panel form-grid">

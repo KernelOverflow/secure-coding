@@ -1,0 +1,12 @@
+{# 영어 보조 제목, 한글 제목, 선택 설명과 오른쪽 작업 영역을 공통으로 출력한다 #}
+{% macro page_header(eyebrow, title, description='') %}
+<div class="page-head">
+  <div>
+    <p class="eyebrow">{{ eyebrow }}</p>
+    <h1>{{ title }}</h1>
+    {% if description %}<p>{{ description }}</p>{% endif %}
+  </div>
+  {# call 구문으로 버튼이나 링크가 전달된 화면에서만 오른쪽 작업 영역을 렌더링한다 #}
+  {% if caller is defined %}{{ caller() }}{% endif %}
+</div>
+{% endmacro %}

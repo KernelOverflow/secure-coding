@@ -1,3 +1,4 @@
+{# 상품 이미지, 가격, 판매자, 설명과 사용자 권한에 맞는 동작을 보여주는 상세 화면이다 #}
 {% extends "base.html" %}
 {% block title %}{{ product.title }}{% endblock %}
 {% block content %}
@@ -7,21 +8,31 @@
     {% else %}<div class="product-image image-placeholder">등록된 사진이 없습니다.</div>{% endif %}
   </section>
   <section class="panel">
-    <span class="status status-{{ product.status }}">{{ product.status }}</span>
-    <h1>{{ product.title }}</h1>
+    <div class="detail-heading"><h1>{{ product.title }}</h1><span class="status status-{{ product.status }}">{{ product.status|product_status }}</span></div>
     <p class="price">{{ product.price_krw|krw }}</p>
-    <p>판매자: <a href="{{ url_for('users.view_user', user_id=product.seller.id) }}">{{ product.seller.username }}</a></p>
-    <p class="detail-box">{{ product.description }}</p>
+    <p>판매자: <a href="{{ url_for('users.view_user', user_id=product.seller.id) }}">{{ product.seller.nickname }}</a></p>
+    {% if product.description %}<p class="detail-box">{{ product.description }}</p>{% endif %}
     <div class="actions">
+      {# 판매자가 아닌 로그인 사용자만 문의와 신고를 할 수 있다 #}
       {% if current_user.is_authenticated and current_user.id != product.seller_id %}
         <form method="post" action="{{ url_for('chat.start_conversation', product_id=product.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-secondary" type="submit">판매자에게 문의</button></form>
         <a class="button button-secondary" href="{{ url_for('reports.create_report', target_type='product', target_id=product.id) }}">상품 신고</a>
       {% endif %}
+      {# 상품 수정과 삭제는 판매자 본인 또는 관리자에게만 노출한다 #}
       {% if current_user.is_authenticated and (current_user.id == product.seller_id or current_user.is_admin) %}
+        {# 판매 중과 판매 완료는 이 버튼으로 바로 전환하고, 그 외 상태(숨김·삭제)는 수정 화면에서 다룬다 #}
+        {% if product.status in ['active', 'sold'] %}
+        <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="{{ 'sold' if product.status == 'active' else 'active' }}">
+          <button class="button{{ ' button-muted' if product.status == 'active' else '' }}" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
+        </form>
+        {% endif %}
         <a class="button button-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>
         <form method="post" action="{{ url_for('products.delete_product', product_id=product.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-danger" type="submit">삭제</button></form>
       {% endif %}
     </div>
+    {# 구매 가능한 상품에는 재인증 비밀번호와 중복 결제 방지 키를 함께 전송한다 #}
     {% if current_user.is_authenticated and current_user.id != product.seller_id and product.status == 'active' %}
     <form method="post" action="{{ url_for('products.purchase', product_id=product.id) }}" class="form-grid">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="idempotency_key" value="{{ purchase_key }}">
@@ -31,4 +42,51 @@
     {% endif %}
   </section>
 </div>
+<section id="comments" class="comments-section panel">
+  <div class="comments-heading"><div><p class="eyebrow">Comments</p><h2>댓글 {{ comments|length }}</h2></div></div>
+  <div class="comment-list">
+    {% for comment in comments %}
+    <article class="comment-item">
+      {% if comment.author.profile_image_filename %}<img class="profile-avatar comment-avatar" src="{{ url_for('users.profile_image', filename=comment.author.profile_image_filename) }}" alt="{{ comment.author.nickname }} 프로필 사진">
+      {% else %}<div class="profile-avatar comment-avatar profile-avatar-placeholder" aria-hidden="true">{{ comment.author.nickname[:1] }}</div>{% endif %}
+      <div class="comment-body">
+        <div class="comment-meta">
+          <a href="{{ url_for('users.view_user', user_id=comment.author.id) }}"><strong>{{ comment.author.nickname }}</strong></a>
+          <time datetime="{{ comment.created_at.isoformat() }}">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</time>
+        </div>
+        <p class="comment-content">{{ comment.content }}</p>
+        {% if current_user.is_authenticated and (current_user.id == comment.author_id or current_user.is_admin) %}
+        <form method="post" action="{{ url_for('products.delete_comment', product_id=product.id, comment_id=comment.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="link-button comment-delete" type="submit">삭제</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="empty-comments">아직 등록된 댓글이 없습니다.</div>
+    {% endfor %}
+  </div>
+
+  {% if current_user.is_authenticated %}
+  <form method="post" action="{{ url_for('products.create_comment', product_id=product.id) }}" class="comment-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="comment-content">댓글 내용</label><textarea id="comment-content" name="content" minlength="1" maxlength="500" placeholder="상품에 대한 의견을 남겨 주세요." required></textarea></div>
+    <button class="button" type="submit">댓글 등록</button>
+  </form>
+  {% else %}
+  <div class="comment-form comment-form-disabled">
+    <div class="field"><label for="comment-content-disabled">댓글 내용</label><textarea id="comment-content-disabled" placeholder="로그인 후 댓글을 작성할 수 있습니다" disabled></textarea></div>
+    <button class="button" type="button" disabled>댓글 등록</button>
+    <a class="login-comment-link" href="{{ url_for('auth.login', next=url_for('products.view_product', product_id=product.id) + '#comments') }}">로그인 상태에서만 댓글을 작성할 수 있습니다.</a>
+  </div>
+  {% endif %}
+</section>
+{# 페이지 맨 아래/맨 위로 이동하는 버튼, 클릭할 때마다 방향이 토글된다 #}
+<button type="button" class="scroll-toggle" data-scroll-toggle aria-label="페이지 맨 아래로 이동">
+  <svg class="scroll-toggle-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+</button>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scroll-toggle.js') }}" defer></script>
 {% endblock %}

@@ -1,9 +1,11 @@
+{# 현재 사용자가 제출한 신고 대상, 상태, 사유를 최신 순으로 보여준다 #}
 {% extends "base.html" %}
+{% from "components/data_table.html" import data_table %}
+{% from "components/page_header.html" import page_header %}
 {% block title %}신고 내역{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Reports</p><h1>내 신고 내역</h1></div></div>
-<div class="table-wrap"><table><thead><tr><th>접수 시각</th><th>대상 유형</th><th>대상 ID</th><th>사유</th><th>상태</th></tr></thead><tbody>
-{% for item in reports %}<tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.target_type }}</td><td>{{ item.target_id }}</td><td>{{ item.reason }}</td><td><span class="status">{{ item.status }}</span></td></tr>
-{% else %}<tr><td colspan="5">신고 내역이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div>
+{{ page_header('Reports', '내 신고 내역') }}
+{% call(item) data_table(['접수 시각', '대상 유형', '대상 ID', '사유', '상태'], reports, '신고 내역이 없습니다.') %}
+  <tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.target_type }}</td><td>{{ item.target_id }}</td><td>{{ item.reason }}</td><td><span class="status">{{ item.status }}</span></td></tr>
+{% endcall %}
 {% endblock %}

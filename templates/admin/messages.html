@@ -1,0 +1,22 @@
+{# 관리자가 모든 1대1 채팅 메시지를 확인하고 사유와 함께 숨김 또는 복구하는 화면이다 #}
+{% extends "base.html" %}
+{% from "admin/_pagination.html" import render_pagination %}
+{% from "admin/_search.html" import render_admin_search %}
+{% block title %}메시지 관리{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Administration</p><h1>메시지 관리</h1><p>분쟁 대응에 필요한 원문은 보존하고 사용자 화면의 공개 상태만 변경합니다.</p></div>{% include "admin/_nav.html" %}</div>
+{{ render_admin_search('admin.messages', search, '채팅 메시지 내용 검색', conversation_id) }}
+<div class="table-wrap"><table><thead><tr><th>상품</th><th>발신자</th><th>메시지</th><th>전송 시각</th><th>상태</th><th>관리</th></tr></thead><tbody>
+{% for message in messages %}
+<tr>
+  <td>{{ message.conversation.product.title }}</td>
+  <td>{{ message.sender.nickname }}</td>
+  <td class="moderation-content">{{ message.content }}</td>
+  <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+  <td>{{ '공개' if message.status == 'active' else '숨김' }}</td>
+  <td><form class="compact-form" method="post" action="{{ url_for('admin.update_message_status', message_id=message.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="active"{% if message.status == 'active' %} selected{% endif %}>공개</option><option value="deleted"{% if message.status == 'deleted' %} selected{% endif %}>숨김</option></select><input name="reason" minlength="5" maxlength="500" placeholder="조치 사유" required><button class="button button-small" type="submit">변경</button></form></td>
+</tr>
+{% else %}<tr><td colspan="6">저장된 메시지가 없습니다.</td></tr>{% endfor %}
+</tbody></table></div>
+{{ render_pagination(pagination, 'admin.messages', search, conversation_id) }}
+{% endblock %}

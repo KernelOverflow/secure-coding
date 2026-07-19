@@ -1,0 +1,9 @@
+{# 관리자 목록에서 필요한 대상을 빠르게 찾고 같은 화면에서 검색을 초기화하는 공통 폼이다 #}
+{% macro render_admin_search(endpoint, search, placeholder, conversation_id='') %}
+<form class="admin-search" method="get" action="{{ url_for(endpoint) }}" role="search">
+  {% if conversation_id %}<input type="hidden" name="conversation_id" value="{{ conversation_id }}">{% endif %}
+  <input name="q" value="{{ search }}" maxlength="100" placeholder="{{ placeholder }}" aria-label="관리 목록 검색어">
+  <button class="button button-small" type="submit">검색</button>
+  {% if search %}<a class="button button-secondary button-small" href="{{ url_for(endpoint, conversation_id=conversation_id) if conversation_id else url_for(endpoint) }}">초기화</a>{% endif %}
+</form>
+{% endmacro %}

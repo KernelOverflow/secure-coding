@@ -1,11 +1,18 @@
+{# 공개 닉네임이 아닌 로그인 전용 아이디와 비밀번호로 인증하는 화면이다 #}
 {% extends "base.html" %}
 {% block title %}로그인{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Account</p><h1>로그인</h1></div></div>
 <form method="post" class="panel form-panel form-grid">
+  {# 로그인 요청도 세션을 생성하므로 CSRF 토큰을 함께 전송한다 #}
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="field"><label for="username">사용자명</label><input id="username" name="username" maxlength="20" autocomplete="username" required></div>
+  <div class="field"><label for="login_id">아이디</label><input id="login_id" name="login_id" value="{{ login_id or '' }}" maxlength="20" autocomplete="username" required></div>
   <div class="field"><label for="password">비밀번호</label><input id="password" type="password" name="password" maxlength="128" autocomplete="current-password" required></div>
+  <div class="login-options">
+    <label class="checkbox-field"><input type="checkbox" name="remember_login_id" value="1"{% if remember_login_id %} checked{% endif %}> 아이디 기억하기</label>
+    <label class="checkbox-field"><input type="checkbox" name="keep_signed_in" value="1"{% if keep_signed_in %} checked{% endif %}> 로그인 상태 유지</label>
+  </div>
+  <small class="muted">공용 PC에서는 위 옵션 사용에 주의해주세요.</small>
   <button class="button" type="submit">로그인</button>
 </form>
 {% endblock %}

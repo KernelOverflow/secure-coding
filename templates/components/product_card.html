@@ -1,0 +1,22 @@
+{# 상품 이미지, 상태, 상품명과 가격을 목록 종류와 관계없이 같은 카드 구조로 출력한다 #}
+{% macro product_card(product, detail_url, unavailable_statuses=(), unavailable_label='사진 없음') %}
+<article class="card product-card" data-product-card>
+  <a class="card-link product-card-main" href="{{ detail_url }}" aria-label="{{ product.title }} 상세 보기">
+    {# 숨김·삭제처럼 이미지를 공개하면 안 되는 상태는 업로드 URL 대신 전달받은 대체 문구를 쓴다 #}
+    {% if product.status in unavailable_statuses %}
+      <div class="product-card-image image-placeholder" aria-hidden="true">{{ unavailable_label }}</div>
+    {% elif product.image_filename %}
+      <img class="product-card-image" src="{{ url_for('products.uploaded_image', filename=product.image_filename) }}" alt="{{ product.title }} 상품 미리보기" loading="lazy">
+    {% else %}
+      <div class="product-card-image image-placeholder" aria-hidden="true">사진 없음</div>
+    {% endif %}
+    <div class="product-card-body">
+      <span class="status status-{{ product.status }}">{{ product.status|product_status }}</span>
+      <h2>{{ product.title }}</h2>
+      <p>{{ product.price_krw|krw }}</p>
+    </div>
+  </a>
+  {# call 구문으로 수정 버튼 같은 화면 전용 작업이 전달된 경우에만 별도 영역을 만든다 #}
+  {% if caller is defined %}<div class="product-card-actions">{{ caller() }}</div>{% endif %}
+</article>
+{% endmacro %}

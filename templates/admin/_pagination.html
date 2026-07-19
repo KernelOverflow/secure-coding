@@ -1,0 +1,21 @@
+{# 관리자 목록을 50개씩 이동하면서 마지막 데이터까지 접근하는 공통 페이지 이동 도구다 #}
+{% macro page_url(endpoint, page, search='', conversation_id='') -%}
+  {{- url_for(endpoint, page=page, q=search, conversation_id=conversation_id) if search and conversation_id else url_for(endpoint, page=page, q=search) if search else url_for(endpoint, page=page, conversation_id=conversation_id) if conversation_id else url_for(endpoint, page=page) -}}
+{%- endmacro %}
+{% macro render_pagination(pagination, endpoint, search='', conversation_id='') %}
+{% if pagination.pages > 1 %}
+<nav class="pagination" aria-label="관리 목록 페이지 이동">
+  {% if pagination.has_prev %}
+    <a class="button button-secondary button-small" href="{{ page_url(endpoint, pagination.prev_num, search, conversation_id) }}">이전</a>
+  {% else %}
+    <span class="button button-secondary button-small is-disabled" aria-disabled="true">이전</span>
+  {% endif %}
+  <span>{{ pagination.page }} / {{ pagination.pages }} 페이지 · 전체 {{ pagination.total }}개</span>
+  {% if pagination.has_next %}
+    <a class="button button-secondary button-small" href="{{ page_url(endpoint, pagination.next_num, search, conversation_id) }}">다음</a>
+  {% else %}
+    <span class="button button-secondary button-small is-disabled" aria-disabled="true">다음</span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

@@ -1,18 +1,38 @@
+{# 공개 닉네임과 소개글로 다른 회원을 찾고 송금 또는 프로필 화면으로 이동한다 #}
 {% extends "base.html" %}
+{% from "components/page_header.html" import page_header %}
 {% block title %}회원 찾기{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Members</p><h1>회원 찾기</h1><p>사용자명 또는 소개글로 검색해 송금할 회원을 찾습니다.</p></div></div>
+{{ page_header('Members', '회원 찾기', '닉네임 또는 소개글로 검색해 송금할 회원을 찾습니다.') }}
 <form method="get" class="search-bar">
-  <input name="q" value="{{ keyword }}" maxlength="20" placeholder="사용자명 검색" aria-label="사용자 검색">
+  <input name="q" value="{{ keyword }}" maxlength="20" placeholder="닉네임 검색" aria-label="닉네임 검색">
   <button class="button" type="submit">검색</button>
 </form>
 <div class="grid">
   {% for user in users %}
-  <article class="card">
-    <span class="status status-{{ user.status }}">{{ user.status }}</span>
-    <h2><a href="{{ url_for('users.view_user', user_id=user.id) }}">{{ user.username }}</a></h2>
-    <p>{{ user.bio or '소개글이 없습니다.' }}</p>
+  <article class="card search-result">
+    <div class="search-result-heading">
+      {% if user.profile_image_filename %}<img class="profile-avatar search-result-avatar" src="{{ url_for('users.profile_image', filename=user.profile_image_filename) }}" alt="{{ user.nickname }} 프로필 사진" loading="lazy">
+      {% else %}<div class="profile-avatar search-result-avatar profile-avatar-placeholder" aria-hidden="true">{{ user.nickname[:1] }}</div>{% endif %}
+      <h2><a href="{{ url_for('users.view_user', user_id=user.id) }}">{{ user.nickname }}</a></h2>
+    </div>
+    <div class="search-result-meta">
+      {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status }}</span>{% endif %}
+      <p>{{ user.bio or '소개글이 없습니다.' }}</p>
+    </div>
   </article>
-  {% else %}{% if keyword %}<div class="empty-state"><h2>검색 결과가 없습니다.</h2></div>{% endif %}{% endfor %}
+  {% else %}
+    {% if keyword %}
+    <div class="empty-state"><h2>검색 결과가 없습니다.</h2></div>
+    {% else %}
+    <div class="search-empty">
+      <svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="var(--muted)" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+        <circle cx="21" cy="21" r="14"></circle>
+        <line x1="31" y1="31" x2="43" y2="43"></line>
+      </svg>
+      <p>닉네임 또는 소개글로 회원을 검색해 보세요.</p>
+    </div>
+    {% endif %}
+  {% endfor %}
 </div>
 {% endblock %}

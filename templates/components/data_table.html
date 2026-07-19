@@ -1,0 +1,15 @@
+{# 열 제목, 행 목록과 빈 상태 문구를 받아 같은 반응형 표 구조로 출력한다 #}
+{% macro data_table(headers, rows, empty_message) %}
+<div class="table-wrap">
+  <table>
+    <thead><tr>{% for header in headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in rows %}
+        {{ caller(row) }}
+      {% else %}
+        <tr><td colspan="{{ headers|length }}">{{ empty_message }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}

@@ -1,8 +1,13 @@
+{# 주요 작업의 수행자, 대상, 사유, IP와 시각을 삭제 없이 확인하는 감사 화면이다 #}
 {% extends "base.html" %}
+{% from "admin/_pagination.html" import render_pagination %}
+{% from "admin/_search.html" import render_admin_search %}
 {% block title %}감사 로그{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>감사 로그</h1></div>{% include "admin/_nav.html" %}</div>
+{{ render_admin_search('admin.audit_logs', search, '작업, 대상 종류 또는 사유 검색') }}
 <div class="table-wrap"><table><thead><tr><th>시각</th><th>수행자</th><th>작업</th><th>대상</th><th>사유</th><th>IP</th></tr></thead><tbody>
-{% for log in logs %}<tr><td>{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ log.actor.username if log.actor else 'system' }}</td><td>{{ log.action }}</td><td>{{ log.target_type }} / {{ log.target_id or '-' }}</td><td>{{ log.reason }}</td><td>{{ log.ip_address or '-' }}</td></tr>{% endfor %}
+{% for log in logs %}<tr><td>{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{% if log.actor %}{{ log.actor.nickname }} ({{ log.actor.login_id }}){% else %}system{% endif %}</td><td>{{ log.action }}</td><td>{{ log.target_type }} / {{ log.target_id or '-' }}</td><td>{{ log.reason }}</td><td>{{ log.ip_address or '-' }}</td></tr>{% endfor %}
 </tbody></table></div>
+{{ render_pagination(pagination, 'admin.audit_logs', search) }}
 {% endblock %}

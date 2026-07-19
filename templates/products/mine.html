@@ -1,15 +1,24 @@
+{# 로그인 사용자가 자신이 등록한 상품과 상태를 관리하는 화면이다 #}
 {% extends "base.html" %}
+{% from "components/page_header.html" import page_header %}
+{% from "components/product_card.html" import product_card %}
 {% block title %}내 상품{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">My products</p><h1>내 상품 관리</h1></div><a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a></div>
-<div class="grid">
+{% call page_header('My products', '내 상품 관리') %}
+  <a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a>
+{% endcall %}
+<div class="grid product-grid">
   {% for product in products %}
-  <article class="card">
-    <span class="status status-{{ product.status }}">{{ product.status }}</span>
-    <h2><a href="{{ url_for('products.view_product', product_id=product.id) }}">{{ product.title }}</a></h2>
-    <p>{{ product.price_krw|krw }}</p>
-    {% if product.status != 'deleted' %}<a class="button button-secondary button-small" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>{% endif %}
-  </article>
+    {% call product_card(product, url_for('products.view_product', product_id=product.id), ['deleted'], '삭제된 상품') %}
+      {% if product.status in ['active', 'sold'] %}
+      <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="status" value="{{ 'sold' if product.status == 'active' else 'active' }}">
+        <button class="button{{ ' button-muted' if product.status == 'active' else '' }} button-small" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
+      </form>
+      {% endif %}
+      {% if product.status != 'deleted' %}<a class="button button-secondary button-small" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>{% endif %}
+    {% endcall %}
   {% else %}<div class="empty-state"><h2>등록한 상품이 없습니다.</h2></div>{% endfor %}
 </div>
 {% endblock %}

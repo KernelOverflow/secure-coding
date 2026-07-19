@@ -1,10 +1,21 @@
+{# 서버에서 권한을 확인한 대화방의 기존 메시지와 실시간 입력 폼을 보여준다 #}
 {% extends "base.html" %}
 {% block title %}{{ conversation.product.title }} 채팅{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Private chat</p><h1>{{ conversation.product.title }}</h1><p>구매자 {{ conversation.buyer.username }} · 판매자 {{ conversation.seller.username }}</p></div><a class="button button-secondary" href="{{ url_for('products.view_product', product_id=conversation.product.id) }}">상품 보기</a></div>
-<section class="panel" data-chat-root data-conversation-id="{{ conversation.id }}">
+<div class="page-head"><div><p class="eyebrow">Private chat</p><h1>{{ conversation.product.title }}</h1><p>구매자 {{ conversation.buyer.nickname }} / 판매자 {{ conversation.seller.nickname }}</p></div><a class="button button-secondary" href="{{ url_for('products.view_product', product_id=conversation.product.id) }}">상품 보기</a></div>
+<section class="panel" data-chat-root data-conversation-id="{{ conversation.id }}" data-current-user-id="{{ current_user.id }}">
   <ul class="message-list" data-chat-messages>
-    {% for message in messages %}<li class="message"><strong>{{ message.sender.username }}</strong><p>{{ message.content }}</p><span class="message-time">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span></li>{% endfor %}
+    {% for message in messages %}
+    <li class="message {{ 'message-own' if message.sender_id == current_user.id else 'message-other' }}">
+      {% if message.sender.profile_image_filename %}<img class="profile-avatar message-avatar" src="{{ url_for('users.profile_image', filename=message.sender.profile_image_filename) }}" alt="{{ message.sender.nickname }} 프로필 사진">
+      {% else %}<div class="profile-avatar message-avatar profile-avatar-placeholder" aria-hidden="true">{{ message.sender.nickname[:1] }}</div>{% endif %}
+      <div class="message-body">
+        <strong>{{ message.sender.nickname }}</strong>
+        <p>{{ message.content }}</p>
+        <span class="message-time">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+      </div>
+    </li>
+    {% endfor %}
   </ul>
   <p class="chat-error" data-chat-error aria-live="polite"></p>
   <form class="chat-form" data-chat-form><input data-chat-input maxlength="1000" autocomplete="off" placeholder="메시지를 입력하세요" aria-label="메시지" required><button class="button" type="submit">전송</button></form>

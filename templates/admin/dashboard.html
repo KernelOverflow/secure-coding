@@ -1,8 +1,9 @@
+{# 회원, 상품, 신고, 거래, 대화방 개수를 한눈에 보여주는 관리자 대시보드이다 #}
 {% extends "base.html" %}
 {% block title %}관리자{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>관리자 대시보드</h1></div>{% include "admin/_nav.html" %}</div>
 <div class="stat-grid">
-  <div class="stat"><span>회원</span><strong>{{ counts.users }}</strong></div><div class="stat"><span>상품</span><strong>{{ counts.products }}</strong></div><div class="stat"><span>미처리 신고</span><strong>{{ counts.pending_reports }}</strong></div><div class="stat"><span>거래</span><strong>{{ counts.transactions }}</strong></div><div class="stat"><span>1:1 대화</span><strong>{{ counts.conversations }}</strong></div>
+  <div class="stat"><span>회원</span><strong>{{ counts.users }}</strong></div><div class="stat"><span>상품</span><strong>{{ counts.products }}</strong></div><div class="stat"><span>댓글</span><strong>{{ counts.comments }}</strong></div><div class="stat"><span>미처리 신고</span><strong>{{ counts.pending_reports }}</strong></div><div class="stat"><span>구매</span><strong>{{ counts.purchases }}</strong></div><div class="stat"><span>거래</span><strong>{{ counts.transactions }}</strong></div><div class="stat"><span>1:1 대화</span><strong>{{ counts.conversations }}</strong></div><div class="stat"><span>메시지</span><strong>{{ counts.messages }}</strong></div>
 </div>
 {% endblock %}

@@ -1,10 +1,13 @@
+{# 공개 상품을 검색하고 이미지 미리보기 카드로 보여주는 상품 목록 화면이다 #}
 {% extends "base.html" %}
+{% from "components/page_header.html" import page_header %}
+{% from "components/product_card.html" import product_card %}
 {% block title %}상품 목록{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div><p class="eyebrow">Marketplace</p><h1>상품 찾기</h1><p>상품명을 눌러 상세 정보와 판매자를 확인하세요.</p></div>
+{% call page_header('Marketplace', '상품 찾기', '상품명을 눌러 상세 정보와 판매자를 확인하세요.') %}
   {% if current_user.is_authenticated %}<a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a>{% endif %}
-</div>
+{% endcall %}
+{# 검색은 데이터를 바꾸지 않으므로 공유와 새로고침이 가능한 GET 쿼리로 전송한다 #}
 <form method="get" class="search-bar" role="search">
   <input name="q" value="{{ keyword }}" maxlength="100" placeholder="상품명 또는 설명 검색" aria-label="검색어">
   <input name="min_price" value="{{ minimum or '' }}" inputmode="numeric" placeholder="최소 가격" aria-label="최소 가격">
@@ -17,12 +20,9 @@
   <button class="button" type="submit">검색</button>
 </form>
 {% if products %}
-<div class="grid">
+<div class="grid product-grid">
   {% for product in products %}
-    <a class="card card-link" href="{{ url_for('products.view_product', product_id=product.id) }}">
-      <span class="status status-{{ product.status }}">{{ '판매 중' if product.status == 'active' else '판매 완료' }}</span>
-      <h2>{{ product.title }}</h2>
-    </a>
+    {{ product_card(product, url_for('products.view_product', product_id=product.id)) }}
   {% endfor %}
 </div>
 {% else %}<div class="empty-state"><h2>조건에 맞는 상품이 없습니다.</h2></div>{% endif %}

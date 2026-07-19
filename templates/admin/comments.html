@@ -1,0 +1,22 @@
+{# 관리자가 모든 상품 댓글을 확인하고 사유와 함께 숨김 또는 복구하는 화면이다 #}
+{% extends "base.html" %}
+{% from "admin/_pagination.html" import render_pagination %}
+{% from "admin/_search.html" import render_admin_search %}
+{% block title %}댓글 관리{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Administration</p><h1>댓글 관리</h1><p>삭제 상태도 보존해 조치 이력을 확인하고 필요한 경우 복구할 수 있습니다.</p></div>{% include "admin/_nav.html" %}</div>
+{{ render_admin_search('admin.comments', search, '상품명 또는 댓글 내용 검색') }}
+<div class="table-wrap"><table><thead><tr><th>상품</th><th>작성자</th><th>댓글</th><th>작성 시각</th><th>상태</th><th>관리</th></tr></thead><tbody>
+{% for comment in comments %}
+<tr>
+  <td>{{ comment.product.title }}</td>
+  <td>{{ comment.author.nickname }}</td>
+  <td class="moderation-content">{{ comment.content }}</td>
+  <td>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+  <td>{{ '공개' if comment.status == 'active' else '숨김' }}</td>
+  <td><form class="compact-form" method="post" action="{{ url_for('admin.update_comment_status', comment_id=comment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="active"{% if comment.status == 'active' %} selected{% endif %}>공개</option><option value="deleted"{% if comment.status == 'deleted' %} selected{% endif %}>숨김</option></select><input name="reason" minlength="5" maxlength="500" placeholder="조치 사유" required><button class="button button-small" type="submit">변경</button></form></td>
+</tr>
+{% else %}<tr><td colspan="6">등록된 댓글이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div>
+{{ render_pagination(pagination, 'admin.comments', search) }}
+{% endblock %}

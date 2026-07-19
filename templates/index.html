@@ -1,13 +1,45 @@
+{# 파일마켓의 목적을 소개하고 로그인 상태에 맞는 시작 버튼을 보여주는 메인 화면이다 #}
 {% extends "base.html" %}
 {% block title %}파일마켓{% endblock %}
 {% block content %}
-<section class="hero">
-  <p class="eyebrow">Tiny Second-hand Shopping Platform</p>
-  <h1>안전하게 연결되는<br>작은 중고거래 마켓</h1>
-  <p>상품을 등록하고, 판매자와 1:1로 대화하고, 서비스 내부 원화 잔액으로 거래해 보세요.</p>
-  <div class="actions">
-    <a class="button" href="{{ url_for('auth.register') }}">회원가입</a>
-    <a class="button button-secondary" href="{{ url_for('auth.login') }}">로그인</a>
+<section class="hero hero-split">
+  <div class="hero-text">
+    <p class="eyebrow">Tiny Second-hand Shopping Platform</p>
+    <h1>안전하게 연결되는<br>작은 중고거래 마켓</h1>
+    <p>상품 등록부터 채팅, 결제까지 작은 중고거래를 한곳에서 안전하게 시작해 보세요.</p>
+    <div class="actions">
+      {# 로그인 사용자는 상품 기능으로, 비로그인 사용자는 가입과 로그인으로 안내한다 #}
+      {% if current_user.is_authenticated %}
+        <a class="button" href="{{ url_for('products.list_products') }}">상품 목록</a>
+        <a class="button button-secondary" href="{{ url_for('products.create_product') }}">상품 등록</a>
+      {% else %}
+        <a class="button" href="{{ url_for('auth.register') }}">회원가입</a>
+        <a class="button button-secondary" href="{{ url_for('auth.login') }}">로그인</a>
+        <a class="button button-secondary" href="{{ url_for('products.list_products') }}">상품 둘러보기</a>
+      {% endif %}
+    </div>
   </div>
+  {# 텍스트만 있던 오른쪽 공간을 채우는 장식용 일러스트, 정보 전달용이 아니므로 스크린리더에서 숨긴다 #}
+  <svg class="hero-visual" viewBox="0 0 380 340" aria-hidden="true">
+    <circle cx="190" cy="170" r="168" fill="var(--accent)"></circle>
+    <g transform="translate(46, 60) rotate(-6)">
+      <rect x="0" y="0" width="180" height="130" rx="18" fill="var(--card)" stroke="var(--line)" stroke-width="2"></rect>
+      <rect x="16" y="18" width="60" height="60" rx="10" fill="var(--accent)"></rect>
+      <rect x="16" y="90" width="90" height="10" rx="5" fill="var(--line)"></rect>
+      <rect x="16" y="106" width="60" height="10" rx="5" fill="var(--line)"></rect>
+    </g>
+    <g transform="translate(150, 140) rotate(5)">
+      <rect x="0" y="0" width="180" height="130" rx="18" fill="var(--card)" stroke="var(--line)" stroke-width="2"></rect>
+      <rect x="16" y="18" width="60" height="60" rx="10" fill="var(--accent)"></rect>
+      <rect x="16" y="90" width="90" height="10" rx="5" fill="var(--line)"></rect>
+      <rect x="16" y="106" width="60" height="10" rx="5" fill="var(--line)"></rect>
+      <circle cx="150" cy="20" r="18" fill="var(--primary)"></circle>
+      <text x="150" y="26" text-anchor="middle" font-size="18" font-weight="700" fill="white">₩</text>
+    </g>
+    <g transform="translate(60, 210)">
+      <rect x="0" y="0" width="90" height="54" rx="16" fill="var(--primary-dark)"></rect>
+      <polygon points="16,54 34,54 16,70" fill="var(--primary-dark)"></polygon>
+    </g>
+  </svg>
 </section>
 {% endblock %}

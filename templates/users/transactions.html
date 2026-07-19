@@ -1,9 +1,11 @@
+{# 현재 사용자가 보내거나 받은 변경 불가능한 거래 원장을 표로 보여준다 #}
 {% extends "base.html" %}
+{% from "components/data_table.html" import data_table %}
+{% from "components/page_header.html" import page_header %}
 {% block title %}거래 내역{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Transactions</p><h1>거래 내역</h1><p>완료된 거래는 수정·삭제되지 않으며 정정은 새 거래로 기록됩니다.</p></div></div>
-<div class="table-wrap"><table><thead><tr><th>시각</th><th>구분</th><th>보낸 사용자</th><th>받은 사용자</th><th>금액</th><th>메모</th></tr></thead><tbody>
-{% for item in transactions %}<tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.kind }}</td><td>{{ item.sender.username if item.sender else '-' }}</td><td>{{ item.receiver.username if item.receiver else '-' }}</td><td>{{ item.amount_krw|krw }}</td><td>{{ item.note }}</td></tr>
-{% else %}<tr><td colspan="6">거래 내역이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div>
+{{ page_header('Transactions', '거래 내역', '완료된 거래는 수정·삭제되지 않으며 정정은 새 거래로 기록됩니다.') }}
+{% call(item) data_table(['시각', '구분', '보낸 사용자', '받은 사용자', '금액', '메모'], transactions, '거래 내역이 없습니다.') %}
+  <tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.kind }}</td><td>{{ item.sender.nickname if item.sender else '-' }}</td><td>{{ item.receiver.nickname if item.receiver else '-' }}</td><td>{{ item.amount_krw|krw }}</td><td>{{ item.note }}</td></tr>
+{% endcall %}
 {% endblock %}

@@ -1,43 +1,20 @@
+{# 모든 화면이 공통으로 사용하는 HTML 뼈대, 상단 메뉴, 알림, 하단 안내를 정의한다 #}
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# Socket.IO 이벤트도 요청 위조를 검사할 수 있도록 현재 세션의 CSRF 토큰을 제공한다 #}
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}파일마켓{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <header class="site-header">
-    <nav class="nav-wrap" aria-label="주 메뉴">
-      <a class="brand" href="{{ url_for('products.list_products') }}">파일마켓</a>
-      <button class="nav-toggle" type="button" aria-label="메뉴 열기" data-nav-toggle>☰</button>
-      <div class="nav-links" data-nav-links>
-        <a href="{{ url_for('products.list_products') }}">상품</a>
-        {% if current_user.is_authenticated %}
-          <a href="{{ url_for('products.my_products') }}">내 상품</a>
-          <a href="{{ url_for('users.search_users') }}">회원 찾기</a>
-          <a href="{{ url_for('chat.list_conversations') }}">1:1 채팅</a>
-          <a href="{{ url_for('users.transactions') }}">거래 내역</a>
-          <a href="{{ url_for('reports.my_reports') }}">신고 내역</a>
-          {% if current_user.is_admin %}
-            <a href="{{ url_for('admin.dashboard') }}">관리자</a>
-          {% endif %}
-          <a href="{{ url_for('auth.profile') }}">내 정보</a>
-          <span class="balance">잔액 {{ current_user.balance_krw|krw }}</span>
-          <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="link-button" type="submit">로그아웃</button>
-          </form>
-        {% else %}
-          <a href="{{ url_for('auth.login') }}">로그인</a>
-          <a href="{{ url_for('auth.register') }}">회원가입</a>
-        {% endif %}
-      </div>
-    </nav>
-  </header>
+  {# 비로그인·로그인·관리자 상태를 처리하는 공통 상단 바를 불러온다 #}
+  {% include "partials/topbar.html" %}
 
   <main class="container">
+    {# 서버가 처리 결과와 오류를 flash로 전달하면 사용자가 확인할 수 있게 출력한다 #}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div aria-live="polite">
@@ -47,13 +24,17 @@
         </div>
       {% endif %}
     {% endwith %}
+    {# 각 하위 템플릿의 실제 화면 내용이 들어갈 자리이다 #}
     {% block content %}{% endblock %}
   </main>
 
+  {% if request.endpoint == 'auth.index' %}
   <footer class="footer">
-    <p>모든 금액은 실제 화폐가 아닌 서비스 내부 원화 잔액입니다.</p>
+    <p>모든 금액은 실제 원화 화폐가 아닌 서비스 테스트용 포인트입니다.</p>
   </footer>
+  {% endif %}
   <script src="{{ url_for('static', filename='js/navigation.js') }}" defer></script>
+  {# 채팅처럼 특정 화면에서만 필요한 스크립트는 이 블록에 추가한다 #}
   {% block scripts %}{% endblock %}
 </body>
 </html>

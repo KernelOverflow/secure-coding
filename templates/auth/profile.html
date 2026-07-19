@@ -1,11 +1,22 @@
+{# 본인 잔액, 프로필 사진과 소개글을 확인하고 비밀번호를 변경하는 내 정보 화면이다 #}
 {% extends "base.html" %}
 {% block title %}내 정보{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">My page</p><h1>{{ current_user.username }}</h1><p>현재 잔액 {{ current_user.balance_krw|krw }}</p></div></div>
-<div class="grid">
-  <form method="post" class="panel form-grid">
+<div class="page-head profile-heading panel">
+  {% if current_user.profile_image_filename %}
+  <img class="profile-avatar profile-avatar-large" src="{{ url_for('users.profile_image', filename=current_user.profile_image_filename) }}" alt="{{ current_user.nickname }} 프로필 사진">
+  {% else %}
+  <div class="profile-avatar profile-avatar-large profile-avatar-placeholder" aria-hidden="true">{{ current_user.nickname[:1] }}</div>
+  {% endif %}
+  <div><p class="eyebrow">My page</p><h1>{{ current_user.nickname }}</h1><p>현재 잔액 {{ current_user.balance_krw|krw }}</p></div>
+</div>
+<div class="grid profile-forms">
+  {# 프로필 수정과 비밀번호 변경은 목적이 달라 각각 별도의 POST 폼으로 전송한다 #}
+  <form method="post" enctype="multipart/form-data" class="panel form-grid">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <h2>소개글 수정</h2>
+    <h2>프로필 수정</h2>
+    <div class="field"><label for="profile_image">프로필 사진</label><input id="profile_image" type="file" name="profile_image" accept="image/jpeg,image/png,image/webp"><small>JPEG, PNG, WebP / 최대 6MB / 5,000×5,000px 이하</small></div>
+    {% if current_user.profile_image_filename %}<label class="checkbox-field"><input type="checkbox" name="remove_profile_image" value="1"> 현재 프로필 사진 삭제</label>{% endif %}
     <div class="field"><label for="bio">소개글</label><textarea id="bio" name="bio" maxlength="500">{{ current_user.bio }}</textarea></div>
     <button class="button" type="submit">저장</button>
   </form>
@@ -13,7 +24,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <h2>비밀번호 변경</h2>
     <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
-    <div class="field"><label for="new_password">새 비밀번호</label><input id="new_password" type="password" name="new_password" minlength="10" maxlength="128" autocomplete="new-password" required></div>
+    <div class="field"><label for="new_password">새 비밀번호</label><input id="new_password" type="password" name="new_password" minlength="8" maxlength="128" autocomplete="new-password" required></div>
     <button class="button" type="submit">비밀번호 변경</button>
   </form>
 </div>
