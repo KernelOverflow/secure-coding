@@ -1,6 +1,5 @@
 {# 공개 닉네임이 아닌 로그인 전용 아이디와 비밀번호로 인증하는 화면이다 #}
 {% extends "base.html" %}
-{% block title %}로그인{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Account</p><h1>로그인</h1></div></div>
 <form method="post" class="panel form-panel form-grid">
@@ -13,6 +12,9 @@
     <label class="checkbox-field"><input type="checkbox" name="keep_signed_in" value="1"{% if keep_signed_in %} checked{% endif %}> 로그인 상태 유지</label>
   </div>
   <small class="muted">공용 PC에서는 위 옵션 사용에 주의해주세요.</small>
-  <button class="button" type="submit">로그인</button>
+  <div class="button-row">
+    <button class="button" type="submit">로그인</button>
+    <a class="button button-secondary" href="{{ url_for('auth.register') }}">회원가입</a>
+  </div>
 </form>
 {% endblock %}

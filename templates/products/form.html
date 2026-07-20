@@ -1,6 +1,5 @@
 {# 같은 폼을 상품 등록과 수정에 재사용하며 product 존재 여부로 문구와 기존 값을 정한다 #}
 {% extends "base.html" %}
-{% block title %}{{ '상품 수정' if product else '상품 등록' }}{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Product</p><h1>{{ '상품 수정' if product else '상품 등록' }}</h1></div></div>
 {# 이미지 파일을 함께 보내기 위해 multipart/form-data 형식으로 전송한다 #}

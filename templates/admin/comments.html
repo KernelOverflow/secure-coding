@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "admin/_pagination.html" import render_pagination %}
 {% from "admin/_search.html" import render_admin_search %}
-{% block title %}댓글 관리{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>댓글 관리</h1><p>삭제 상태도 보존해 조치 이력을 확인하고 필요한 경우 복구할 수 있습니다.</p></div>{% include "admin/_nav.html" %}</div>
 {{ render_admin_search('admin.comments', search, '상품명 또는 댓글 내용 검색') }}

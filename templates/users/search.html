@@ -1,10 +1,9 @@
 {# 공개 닉네임과 소개글로 다른 회원을 찾고 송금 또는 프로필 화면으로 이동한다 #}
 {% extends "base.html" %}
 {% from "components/page_header.html" import page_header %}
-{% block title %}회원 찾기{% endblock %}
 {% block content %}
 {{ page_header('Members', '회원 찾기', '닉네임 또는 소개글로 검색해 송금할 회원을 찾습니다.') }}
-<form method="get" class="search-bar">
+<form method="get" class="search-bar search-bar-simple">
   <input name="q" value="{{ keyword }}" maxlength="20" placeholder="닉네임 검색" aria-label="닉네임 검색">
   <button class="button" type="submit">검색</button>
 </form>

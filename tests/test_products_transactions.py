@@ -30,6 +30,11 @@ def test_product_status_button_and_badge_follow_current_status(client, users, pr
     active_page = client.get(f"/products/{product}").get_data(as_text=True)
     assert 'class="status status-active">판매 중</span>' in active_page
     assert 'class="button button-muted" type="submit">판매 완료로 변경' in active_page
+    active_mine_page = client.get("/products/mine").get_data(as_text=True)
+    assert 'class="button button-muted" type="submit">판매 완료로 변경' in active_mine_page
+    assert 'class="button button-secondary"' in active_mine_page
+    assert '>수정</a>' in active_mine_page
+    assert 'class="button button-danger" type="submit">삭제' in active_mine_page
 
     response = client.post(f"/products/{product}/status", data={"status": "sold"})
     assert response.status_code == 302
@@ -37,6 +42,8 @@ def test_product_status_button_and_badge_follow_current_status(client, users, pr
     sold_page = client.get(f"/products/{product}").get_data(as_text=True)
     assert 'class="status status-sold">판매 완료</span>' in sold_page
     assert 'class="button" type="submit">판매 중으로 변경' in sold_page
+    sold_mine_page = client.get("/products/mine").get_data(as_text=True)
+    assert 'class="button" type="submit">판매 중으로 변경' in sold_mine_page
 
 
 def test_guest_sees_disabled_comment_form_and_login_link(client, app, product):
@@ -44,7 +51,7 @@ def test_guest_sees_disabled_comment_form_and_login_link(client, app, product):
     page = client.get(f"/products/{product}").get_data(as_text=True)
     assert 'id="comment-content-disabled"' in page
     assert "disabled" in page
-    assert "로그인 상태에서만 댓글을 작성할 수 있습니다." in page
+    assert "로그인 후 댓글을 작성할 수 있습니다" in page
     assert f"/login?next=/products/{product}%23comments" in page
 
     response = client.post(
@@ -92,6 +99,8 @@ def test_only_comment_author_or_admin_can_delete_comment(client, app, users, pro
     assert denied.status_code == 403
 
     login_as(client, users["buyer"])
+    comment_page = client.get(f"/products/{product}").get_data(as_text=True)
+    assert 'data-confirm-message="이 댓글을 정말 삭제하시겠습니까?"' in comment_page
     deleted = client.post(f"/products/{product}/comments/{comment_id}/delete")
     assert deleted.status_code == 302
     with app.app_context():

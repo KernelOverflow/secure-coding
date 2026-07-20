@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "components/page_header.html" import page_header %}
 {% from "components/product_card.html" import product_card %}
-{% block title %}상품 목록{% endblock %}
 {% block content %}
 {% call page_header('Marketplace', '상품 찾기', '상품명을 눌러 상세 정보와 판매자를 확인하세요.') %}
   {% if current_user.is_authenticated %}<a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a>{% endif %}

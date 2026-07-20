@@ -1,9 +1,8 @@
 {# 현재 사용자가 구매자 또는 판매자로 참여한 1:1 대화방만 보여준다 #}
 {% extends "base.html" %}
 {% from "components/product_card.html" import product_card %}
-{% block title %}1:1 채팅{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Messages</p><h1>상품 문의</h1><p>상품별 구매자와 판매자만 참여하는 1:1 대화입니다.</p></div></div>
+<div class="page-head"><div><p class="eyebrow">Messages</p><h1>상품 문의</h1><p>구매자와 판매자만 참여하는 1:1 대화입니다.</p></div></div>
 <div class="grid product-grid">
 {% for item in conversations %}
   {{ product_card(item.product, url_for('chat.view_conversation', conversation_id=item.id), ['hidden', 'deleted'], '사진 비공개') }}

@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "admin/_pagination.html" import render_pagination %}
 {% from "admin/_search.html" import render_admin_search %}
-{% block title %}신고 관리{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>신고 관리</h1></div>{% include "admin/_nav.html" %}</div>
 {{ render_admin_search('admin.reports', search, '신고 사유 또는 대상 ID 검색') }}

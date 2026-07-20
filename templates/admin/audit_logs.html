@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "admin/_pagination.html" import render_pagination %}
 {% from "admin/_search.html" import render_admin_search %}
-{% block title %}감사 로그{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>감사 로그</h1></div>{% include "admin/_nav.html" %}</div>
 {{ render_admin_search('admin.audit_logs', search, '작업, 대상 종류 또는 사유 검색') }}

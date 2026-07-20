@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "components/data_table.html" import data_table %}
 {% from "components/page_header.html" import page_header %}
-{% block title %}신고 내역{% endblock %}
 {% block content %}
 {{ page_header('Reports', '내 신고 내역') }}
 {% call(item) data_table(['접수 시각', '대상 유형', '대상 ID', '사유', '상태'], reports, '신고 내역이 없습니다.') %}

@@ -1,6 +1,5 @@
 {# 서버가 확인한 사용자 또는 상품을 대상으로 상세 신고 사유를 입력하는 화면이다 #}
 {% extends "base.html" %}
-{% block title %}신고하기{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Report</p><h1>신고하기</h1><p>대상: {{ target.nickname if target_type == 'user' else target.title }}</p></div></div>
 <form method="post" class="panel form-panel form-grid">

@@ -16,6 +16,9 @@ def test_guest_pages_share_guest_topbar(client):
         assert '>회원가입</a>' in page
         assert '>내 상품</a>' not in page
         assert '>로그아웃</button>' not in page
+        assert "<title>파일마켓</title>" in page
+        assert page.count('<dialog class="confirm-dialog" data-confirm-dialog') == 1
+        assert '/static/js/confirm-dialog.js' in page
 
 
 def test_member_pages_share_authenticated_topbar(client, users):
@@ -29,6 +32,7 @@ def test_member_pages_share_authenticated_topbar(client, users):
         assert '>1:1 채팅</a>' in page
         assert '>로그아웃</button>' in page
         assert '>관리자</a>' not in page
+        assert "<title>파일마켓</title>" in page
 
 
 def test_admin_pages_share_topbar_with_admin_link(client, users):
@@ -40,6 +44,7 @@ def test_admin_pages_share_topbar_with_admin_link(client, users):
         assert '>상품 목록</a>' in page
         assert '>관리자</a>' in page
         assert '>로그아웃</button>' in page
+        assert "<title>파일마켓</title>" in page
 
 
 def test_product_and_member_pages_share_page_header_component(client, users):
@@ -77,6 +82,7 @@ def test_product_lists_share_card_component(client, app, users, product):
     assert my_page.count("data-product-card") == 1
     assert "테스트 노트북" in my_page
     assert '>수정</a>' in my_page
+    assert 'data-confirm-message="이 상품을 정말 삭제하시겠습니까?"' in my_page
 
     with app.app_context():
         db.session.add(

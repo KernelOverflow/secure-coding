@@ -273,6 +273,9 @@ def update_status(product_id: str):
     )
     db.session.commit()
     flash("상품 상태를 변경했습니다.", "success")
+    # 내 상품 목록에서 전환한 경우에는 상세 페이지로 이동하지 않고 그 목록으로 돌아간다
+    if request.form.get("next") == "mine":
+        return redirect(url_for("products.my_products"))
     return redirect(url_for("products.view_product", product_id=product.id))
 
 

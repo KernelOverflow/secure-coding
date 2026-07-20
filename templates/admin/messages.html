@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 {% from "admin/_pagination.html" import render_pagination %}
 {% from "admin/_search.html" import render_admin_search %}
-{% block title %}메시지 관리{% endblock %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>메시지 관리</h1><p>분쟁 대응에 필요한 원문은 보존하고 사용자 화면의 공개 상태만 변경합니다.</p></div>{% include "admin/_nav.html" %}</div>
 {{ render_admin_search('admin.messages', search, '채팅 메시지 내용 검색', conversation_id) }}

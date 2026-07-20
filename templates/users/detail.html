@@ -1,6 +1,5 @@
 {# 다른 회원의 공개 프로필과 재인증 송금 폼, 신고 진입 버튼을 보여준다 #}
 {% extends "base.html" %}
-{% block title %}{{ user.nickname }}{% endblock %}
 {% block content %}
 <div class="page-head profile-heading panel">
   {% if user.profile_image_filename %}<img class="profile-avatar profile-avatar-large" src="{{ url_for('users.profile_image', filename=user.profile_image_filename) }}" alt="{{ user.nickname }} 프로필 사진">

@@ -2,22 +2,28 @@
 {% extends "base.html" %}
 {% from "components/page_header.html" import page_header %}
 {% from "components/product_card.html" import product_card %}
-{% block title %}내 상품{% endblock %}
 {% block content %}
 {% call page_header('My products', '내 상품 관리') %}
   <a class="button" href="{{ url_for('products.create_product') }}">상품 등록</a>
 {% endcall %}
-<div class="grid product-grid">
+<div class="grid product-grid mine-product-grid">
   {% for product in products %}
     {% call product_card(product, url_for('products.view_product', product_id=product.id), ['deleted'], '삭제된 상품') %}
       {% if product.status in ['active', 'sold'] %}
       <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="status" value="{{ 'sold' if product.status == 'active' else 'active' }}">
-        <button class="button{{ ' button-muted' if product.status == 'active' else '' }} button-small" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
+        <input type="hidden" name="next" value="mine">
+        <button class="button{{ ' button-muted' if product.status == 'active' else '' }}" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
       </form>
       {% endif %}
-      {% if product.status != 'deleted' %}<a class="button button-secondary button-small" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>{% endif %}
+      {% if product.status != 'deleted' %}
+      <a class="button button-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>
+      <form method="post" action="{{ url_for('products.delete_product', product_id=product.id) }}" class="inline-form" data-confirm-message="이 상품을 정말 삭제하시겠습니까?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button button-danger" type="submit">삭제</button>
+      </form>
+      {% endif %}
     {% endcall %}
   {% else %}<div class="empty-state"><h2>등록한 상품이 없습니다.</h2></div>{% endfor %}
 </div>

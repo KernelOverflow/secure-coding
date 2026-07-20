@@ -1,8 +1,24 @@
 {# 서버에서 권한을 확인한 대화방의 기존 메시지와 실시간 입력 폼을 보여준다 #}
 {% extends "base.html" %}
-{% block title %}{{ conversation.product.title }} 채팅{% endblock %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Private chat</p><h1>{{ conversation.product.title }}</h1><p>구매자 {{ conversation.buyer.nickname }} / 판매자 {{ conversation.seller.nickname }}</p></div><a class="button button-secondary" href="{{ url_for('products.view_product', product_id=conversation.product.id) }}">상품 보기</a></div>
+<div class="page-head chat-heading panel">
+  <div class="chat-heading-info">
+    {% if conversation.product.image_filename and conversation.product.status in ['active', 'sold'] %}
+    <img class="chat-product-thumb" src="{{ url_for('products.uploaded_image', filename=conversation.product.image_filename) }}" alt="{{ conversation.product.title }} 상품 사진">
+    {% else %}
+    <div class="chat-product-thumb image-placeholder" aria-hidden="true">사진 없음</div>
+    {% endif %}
+    <div>
+      <p class="eyebrow">Private chat</p>
+      <h1>{{ conversation.product.title }}</h1>
+      <div class="chat-participants">
+        <span class="participant-chip">구매자 {{ conversation.buyer.nickname }}</span>
+        <span class="participant-chip">판매자 {{ conversation.seller.nickname }}</span>
+      </div>
+    </div>
+  </div>
+  <a class="button button-secondary" href="{{ url_for('products.view_product', product_id=conversation.product.id) }}">상품 보기</a>
+</div>
 <section class="panel" data-chat-root data-conversation-id="{{ conversation.id }}" data-current-user-id="{{ current_user.id }}">
   <ul class="message-list" data-chat-messages>
     {% for message in messages %}

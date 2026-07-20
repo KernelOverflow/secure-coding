@@ -33,7 +33,10 @@
     <p>모든 금액은 실제 원화 화폐가 아닌 서비스 테스트용 포인트입니다.</p>
   </footer>
   {% endif %}
+  {# 삭제 폼은 페이지별 alert 대신 공통 확인 대화상자를 사용한다 #}
+  {% include "partials/confirm_dialog.html" %}
   <script src="{{ url_for('static', filename='js/navigation.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/confirm-dialog.js') }}" defer></script>
   {# 채팅처럼 특정 화면에서만 필요한 스크립트는 이 블록에 추가한다 #}
   {% block scripts %}{% endblock %}
 </body>

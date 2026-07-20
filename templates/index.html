@@ -1,6 +1,5 @@
 {# 파일마켓의 목적을 소개하고 로그인 상태에 맞는 시작 버튼을 보여주는 메인 화면이다 #}
 {% extends "base.html" %}
-{% block title %}파일마켓{% endblock %}
 {% block content %}
 <section class="hero hero-split">
   <div class="hero-text">
@@ -37,8 +36,8 @@
       <text x="150" y="26" text-anchor="middle" font-size="18" font-weight="700" fill="white">₩</text>
     </g>
     <g transform="translate(60, 210)">
-      <rect x="0" y="0" width="90" height="54" rx="16" fill="var(--primary-dark)"></rect>
-      <polygon points="16,54 34,54 16,70" fill="var(--primary-dark)"></polygon>
+      {# 사각형과 꼬리를 하나의 path로 합쳐서 이어붙인 경계에 안티앨리어싱 이음매가 보이지 않게 한다 #}
+      <path d="M16 0 H74 A16 16 0 0 1 90 16 V38 A16 16 0 0 1 74 54 H34 L16 70 L16 54 A16 16 0 0 1 0 38 V16 A16 16 0 0 1 16 0 Z" fill="var(--primary-dark)"></path>
     </g>
   </svg>
 </section>
