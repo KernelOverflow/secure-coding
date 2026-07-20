@@ -11,9 +11,10 @@
         <a href="{{ url_for('users.search_users') }}">회원 찾기</a>
         <a href="{{ url_for('chat.list_conversations') }}">1:1 채팅</a>
         <a href="{{ url_for('users.transactions') }}">거래 내역</a>
-        <a href="{{ url_for('reports.my_reports') }}">신고 내역</a>
         {% if current_user.is_admin %}
           <a href="{{ url_for('admin.dashboard') }}">관리자</a>
+        {% else %}
+          <a href="{{ url_for('reports.my_reports') }}">신고 내역</a>
         {% endif %}
         <a href="{{ url_for('auth.profile') }}">내 정보</a>
         {# 로그아웃도 세션 상태를 바꾸는 요청이므로 GET 링크 대신 CSRF가 있는 POST 폼을 사용한다 #}

@@ -50,7 +50,9 @@ def _safe_next_url(value: str | None) -> str | None:
 
 @bp.get("/")
 def index():
-    """로그인 여부와 관계없이 파일마켓 소개 메인 화면을 보여준다"""
+    """비로그인 사용자에게는 소개 화면을, 로그인 사용자에게는 상품 목록을 보여준다"""
+    if current_user.is_authenticated:
+        return redirect(url_for("products.list_products"))
     return render_template("index.html")
 
 

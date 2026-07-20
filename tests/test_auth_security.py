@@ -179,14 +179,19 @@ def test_security_headers_are_set(client):
     assert response.headers["Cache-Control"] == "no-store"
 
 
-def test_brand_opens_home_page_for_authenticated_user(client, users):
-    """로그인 사용자도 파일마켓 로고로 메인 화면에 이동할 수 있는지 확인한다"""
+def test_brand_opens_home_page_for_guest_and_product_list_for_authenticated_user(client, users):
+    """비로그인은 소개 화면으로, 로그인 사용자는 파일마켓 로고로 상품 목록에 이동하는지 확인한다"""
+    guest_response = client.get("/")
+    guest_page = guest_response.get_data(as_text=True)
+    assert guest_response.status_code == 200
+    assert 'class="brand" href="/"' in guest_page
+    assert "안전하게 연결되는" in guest_page
+
     login_as(client, users["buyer"])
-    response = client.get("/")
+    response = client.get("/", follow_redirects=True)
     page = response.get_data(as_text=True)
     assert response.status_code == 200
     assert 'class="brand" href="/"' in page
-    assert "안전하게 연결되는" in page
     assert "상품 목록" in page
     assert "상품 등록" in page
 

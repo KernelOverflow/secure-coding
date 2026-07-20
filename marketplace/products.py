@@ -137,9 +137,13 @@ def create_product():
 @bp.get("/products/mine")
 @login_required
 def my_products():
-    """현재 사용자가 등록한 상품을 상태와 관계없이 최신 순으로 보여준다"""
+    """현재 사용자가 등록한 상품 중 삭제되지 않은 상품만 최신 순으로 보여준다"""
+    # 삭제 기록 자체는 감사 로그와 관리자 화면에 남으므로, 본인 목록에서는 더 이상 볼 이유가 없는
+    # deleted 상품을 굳이 노출해 클릭 시 404로 이어지는 죽은 링크를 만들지 않는다
     products = (
-        Product.query.filter_by(seller_id=current_user.id)
+        Product.query.filter(
+            Product.seller_id == current_user.id, Product.status != "deleted"
+        )
         .order_by(Product.created_at.desc())
         .all()
     )
@@ -253,16 +257,19 @@ def edit_product(product_id: str):
 @bp.post("/products/<product_id>/status")
 @login_required
 def update_status(product_id: str):
-    """판매자 또는 관리자가 판매 중과 판매 완료 상태를 직접 전환한다"""
+    """판매자는 판매 중 상품만 판매 완료로 되돌릴 수 없게 전환하고, 관리자는 양방향으로 전환한다"""
     product = db.session.get(Product, validate_uuid(product_id, "상품 ID"))
     if not product:
         abort(404)
     if not _can_manage(product):
         abort(403)
     new_status = request.form.get("status")
-    # 숨김·삭제 등 다른 상태는 이 버튼으로 건드리지 못하게 active/sold끼리만 전환을 허용한다
     if new_status not in {"active", "sold"} or product.status not in {"active", "sold"}:
         abort(400)
+    # 판매 완료는 원칙적으로 되돌릴 수 없는 상태이지만, 관리자는 돈이 오가지 않는 상태 표시만
+    # 바로잡을 수 있어야 하므로 sold -> active 전환은 관리자에게만 허용한다
+    if new_status == "active" and product.status == "sold" and not current_user.is_admin:
+        abort(403)
     product.status = new_status
     add_audit_log(
         "product.status_changed",

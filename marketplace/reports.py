@@ -27,6 +27,9 @@ def _target_exists(target_type: str, target_id: str):
 @limiter.limit("10 per hour", methods=["POST"])
 def create_report():
     """신고 대상과 사유를 검증하고 한 사용자당 한 번만 신고를 저장한다"""
+    # 관리자는 신고를 처리하는 주체이지 신고를 접수하는 주체가 아니므로 신고 생성 자체를 막는다
+    if current_user.is_admin:
+        abort(403)
     # GET과 POST 어디에서 오더라도 대상 유형과 UUID를 먼저 검증한다
     target_type = request.values.get("target_type", "")
     raw_target_id = request.values.get("target_id", "")
@@ -97,6 +100,9 @@ def create_report():
 @login_required
 def my_reports():
     """현재 사용자가 제출한 신고와 처리 상태를 최신 순으로 보여준다"""
+    # 관리자는 신고를 접수하지 않으므로 내 신고 내역 대신 신고 처리 화면으로 안내한다
+    if current_user.is_admin:
+        return redirect(url_for("admin.reports"))
     reports = (
         Report.query.filter_by(reporter_id=current_user.id)
         .order_by(Report.created_at.desc())

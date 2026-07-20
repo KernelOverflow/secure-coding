@@ -5,7 +5,7 @@
   {% if user.profile_image_filename %}<img class="profile-avatar profile-avatar-large" src="{{ url_for('users.profile_image', filename=user.profile_image_filename) }}" alt="{{ user.nickname }} 프로필 사진">
   {% else %}<div class="profile-avatar profile-avatar-large profile-avatar-placeholder" aria-hidden="true">{{ user.nickname[:1] }}</div>{% endif %}
   <div class="profile-heading-text"><p class="eyebrow">Member</p><h1>{{ user.nickname }}</h1><p>{{ user.bio or '소개글이 없습니다.' }}</p></div>
-  {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status }}</span>{% endif %}
+  {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status|user_status }}</span>{% endif %}
 </div>
 {% if user.id != current_user.id %}
 <div class="grid">
@@ -17,7 +17,9 @@
     <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
     <button class="button" type="submit">송금</button>
   </form>
+  {% if not current_user.is_admin %}
   <section class="panel"><h2>신고</h2><p>부적절한 활동을 발견했다면 상세한 사유와 함께 신고해 주세요.</p><a class="button button-secondary" href="{{ url_for('reports.create_report', target_type='user', target_id=user.id) }}">사용자 신고</a></section>
+  {% endif %}
 </div>
 {% endif %}
 {% endblock %}

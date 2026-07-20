@@ -284,6 +284,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         }
         return labels.get(str(value), "알 수 없음")
 
+    @app.template_filter("user_status")
+    def format_user_status(value) -> str:
+        """DB의 영문 회원 상태를 관리자 화면에서 같은 한국어 문구로 바꾼다"""
+        labels = {
+            "active": "활성",
+            "suspended": "임시 정지",
+            "banned": "차단",
+        }
+        return labels.get(str(value), "알 수 없음")
+
     @app.before_request
     def enforce_active_account():
         """정지 또는 차단된 계정의 기존 로그인 세션을 요청 처리 전에 종료한다"""

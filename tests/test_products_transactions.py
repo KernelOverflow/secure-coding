@@ -39,11 +39,25 @@ def test_product_status_button_and_badge_follow_current_status(client, users, pr
     response = client.post(f"/products/{product}/status", data={"status": "sold"})
     assert response.status_code == 302
 
+    # 판매 완료는 판매자에게 되돌릴 수 없는 상태이므로 상태 전환 버튼이 더 이상 보이지 않는다
     sold_page = client.get(f"/products/{product}").get_data(as_text=True)
     assert 'class="status status-sold">판매 완료</span>' in sold_page
-    assert 'class="button" type="submit">판매 중으로 변경' in sold_page
+    assert "판매 중으로 변경" not in sold_page
     sold_mine_page = client.get("/products/mine").get_data(as_text=True)
-    assert 'class="button" type="submit">판매 중으로 변경' in sold_mine_page
+    assert "판매 중으로 변경" not in sold_mine_page
+
+    # 되돌리려는 시도 자체도 서버에서 거부한다
+    reverse_attempt = client.post(f"/products/{product}/status", data={"status": "active"})
+    assert reverse_attempt.status_code == 403
+
+    # 관리자는 돈이 오가지 않는 상태 표시를 양방향으로 바로잡을 수 있다
+    login_as(client, users["admin"])
+    admin_sold_page = client.get(f"/products/{product}").get_data(as_text=True)
+    assert 'class="button button-secondary" type="submit">판매 중으로 변경' in admin_sold_page
+    admin_response = client.post(f"/products/{product}/status", data={"status": "active"})
+    assert admin_response.status_code == 302
+    reactivated_page = client.get(f"/products/{product}").get_data(as_text=True)
+    assert 'class="status status-active">판매 중</span>' in reactivated_page
 
 
 def test_guest_sees_disabled_comment_form_and_login_link(client, app, product):
@@ -100,7 +114,7 @@ def test_only_comment_author_or_admin_can_delete_comment(client, app, users, pro
 
     login_as(client, users["buyer"])
     comment_page = client.get(f"/products/{product}").get_data(as_text=True)
-    assert 'data-confirm-message="이 댓글을 정말 삭제하시겠습니까?"' in comment_page
+    assert 'data-confirm-message="댓글을 삭제하면 복구할 수 없습니다."' in comment_page
     deleted = client.post(f"/products/{product}/comments/{comment_id}/delete")
     assert deleted.status_code == 302
     with app.app_context():

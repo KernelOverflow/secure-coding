@@ -16,7 +16,7 @@
       <h2><a href="{{ url_for('users.view_user', user_id=user.id) }}">{{ user.nickname }}</a></h2>
     </div>
     <div class="search-result-meta">
-      {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status }}</span>{% endif %}
+      {% if current_user.is_admin %}<span class="status status-{{ user.status }}">{{ user.status|user_status }}</span>{% endif %}
       <p>{{ user.bio or '소개글이 없습니다.' }}</p>
     </div>
   </article>

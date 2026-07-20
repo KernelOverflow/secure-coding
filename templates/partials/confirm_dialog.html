@@ -1,12 +1,12 @@
 {# 삭제 폼이 공통으로 사용하는 확인 대화상자이다 #}
 <dialog class="confirm-dialog" data-confirm-dialog aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
   <div class="confirm-dialog-content">
-    <p class="eyebrow">삭제 확인</p>
-    <h2 id="confirm-dialog-title">정말 삭제하시겠습니까?</h2>
+    <p class="eyebrow" data-confirm-dialog-eyebrow>삭제 확인</p>
+    <h2 id="confirm-dialog-title" data-confirm-dialog-title>정말 삭제하시겠습니까?</h2>
     <p id="confirm-dialog-message" class="muted" data-confirm-dialog-message>삭제한 내용은 일반 사용자가 다시 복구할 수 없습니다</p>
     <div class="confirm-dialog-actions">
       <button class="button button-secondary" type="button" data-confirm-cancel>취소</button>
-      <button class="button button-danger" type="button" data-confirm-accept>삭제</button>
+      <button class="button button-danger" type="button" data-confirm-accept data-confirm-accept-label>삭제</button>
     </div>
   </div>
 </dialog>

@@ -8,23 +8,37 @@
 {% endcall %}
 <div class="grid product-grid mine-product-grid">
   {% for product in products %}
-    {% call product_card(product, url_for('products.view_product', product_id=product.id), ['deleted'], '삭제된 상품') %}
-      {% if product.status in ['active', 'sold'] %}
-      <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form">
+    {% call product_card(product, url_for('products.view_product', product_id=product.id)) %}
+      {% if product.status == 'active' %}
+      <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form" data-confirm-eyebrow="상태 변경 확인" data-confirm-title="판매 완료로 변경하시겠습니까?" data-confirm-message="{{ '관리자 권한으로 상태만 되돌립니다. 판매자의 잔액에는 영향을 끼치지 않습니다.' if current_user.is_admin else '판매 완료로 변경하면 다시 판매 중으로 되돌릴 수 없습니다.' }}" data-confirm-accept-label="변경">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="status" value="{{ 'sold' if product.status == 'active' else 'active' }}">
+        <input type="hidden" name="status" value="sold">
         <input type="hidden" name="next" value="mine">
-        <button class="button{{ ' button-muted' if product.status == 'active' else '' }}" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
+        <button class="button button-muted" type="submit">판매 완료로 변경</button>
+      </form>
+      {% elif product.status == 'sold' and current_user.is_admin %}
+      <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form" data-confirm-eyebrow="상태 변경 확인" data-confirm-title="판매 중으로 되돌리시겠습니까?" data-confirm-message="관리자 권한으로 상태만 되돌립니다. 판매자의 잔액에는 영향을 끼치지 않습니다." data-confirm-accept-label="변경">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="status" value="active">
+        <input type="hidden" name="next" value="mine">
+        <button class="button button-secondary" type="submit">판매 중으로 변경</button>
       </form>
       {% endif %}
-      {% if product.status != 'deleted' %}
       <a class="button button-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>
       <form method="post" action="{{ url_for('products.delete_product', product_id=product.id) }}" class="inline-form" data-confirm-message="이 상품을 정말 삭제하시겠습니까?">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="button button-danger" type="submit">삭제</button>
       </form>
-      {% endif %}
     {% endcall %}
-  {% else %}<div class="empty-state"><h2>등록한 상품이 없습니다.</h2></div>{% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="8" y="18" width="32" height="22" rx="3"></rect>
+      <path d="M8 18 12 8 H36 L40 18"></path>
+      <path d="M20 24 H28"></path>
+    </svg>
+    <h2>등록한 상품이 없습니다.</h2>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

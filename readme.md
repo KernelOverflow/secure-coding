@@ -77,6 +77,8 @@ uv.lock             운영 및 개발 의존성 잠금
 - Docker Compose는 Python과 라이브러리를 호스트에 따로 설치하지 않아도 동일한 환경으로 실행할 수 있어 가장 권장하는 방법입니다.
 
 - Docker Desktop 또는 Docker Engine과 Compose 플러그인을 설치한 뒤 다음 명령을 실행합니다.
+  - 당연하지만 Docker Desktop은 계속해서 구동중인 상태여야 코드를 실행하실 수 있습니다.
+
 
 ```bash
 git clone https://github.com/KernelOverflow/secure-coding.git

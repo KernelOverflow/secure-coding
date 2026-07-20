@@ -3,7 +3,7 @@
 {% from "components/data_table.html" import data_table %}
 {% from "components/page_header.html" import page_header %}
 {% block content %}
-{{ page_header('Transactions', '거래 내역', '완료된 거래는 수정·삭제되지 않으며 정정은 새 거래로 기록됩니다.') }}
+{{ page_header('Transactions', '거래 내역', '완료된 거래는 수정하거나 삭제할 수 없으며, 정정 내역 역시 신규 거래로 기록됩니다.') }}
 {% call(item) data_table(['시각', '구분', '보낸 사용자', '받은 사용자', '금액', '메모'], transactions, '거래 내역이 없습니다.') %}
   <tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.kind }}</td><td>{{ item.sender.nickname if item.sender else '-' }}</td><td>{{ item.receiver.nickname if item.receiver else '-' }}</td><td>{{ item.amount_krw|krw }}</td><td>{{ item.note }}</td></tr>
 {% endcall %}

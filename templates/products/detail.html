@@ -12,19 +12,28 @@
     <p>판매자: <a href="{{ url_for('users.view_user', user_id=product.seller.id) }}">{{ product.seller.nickname }}</a></p>
     {% if product.description %}<p class="detail-box">{{ product.description }}</p>{% endif %}
     <div class="actions">
-      {# 판매자가 아닌 로그인 사용자만 문의와 신고를 할 수 있다 #}
+      {# 판매자가 아닌 로그인 사용자만 문의할 수 있다 #}
       {% if current_user.is_authenticated and current_user.id != product.seller_id %}
         <form method="post" action="{{ url_for('chat.start_conversation', product_id=product.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-secondary" type="submit">판매자에게 문의</button></form>
+      {% endif %}
+      {# 신고는 처리 주체인 관리자를 제외한 일반 사용자만 할 수 있다 #}
+      {% if current_user.is_authenticated and current_user.id != product.seller_id and not current_user.is_admin %}
         <a class="button button-secondary" href="{{ url_for('reports.create_report', target_type='product', target_id=product.id) }}">상품 신고</a>
       {% endif %}
       {# 상품 수정과 삭제는 판매자 본인 또는 관리자에게만 노출한다 #}
       {% if current_user.is_authenticated and (current_user.id == product.seller_id or current_user.is_admin) %}
-        {# 판매 중과 판매 완료는 이 버튼으로 바로 전환하고, 그 외 상태(숨김·삭제)는 수정 화면에서 다룬다 #}
-        {% if product.status in ['active', 'sold'] %}
-        <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form">
+        {# 판매 완료는 판매자에게 되돌릴 수 없지만, 관리자는 돈이 오가지 않는 상태 표시를 양방향으로 바로잡을 수 있다 #}
+        {% if product.status == 'active' %}
+        <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form" data-confirm-eyebrow="상태 변경 확인" data-confirm-title="판매 완료로 변경하시겠습니까?" data-confirm-message="{{ '관리자 권한으로 상태만 되돌립니다. 판매자의 잔액에는 영향을 끼치지 않습니다.' if current_user.is_admin else '판매 완료로 변경하면 다시 판매 중으로 되돌릴 수 없습니다.' }}" data-confirm-accept-label="변경">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="status" value="{{ 'sold' if product.status == 'active' else 'active' }}">
-          <button class="button{{ ' button-muted' if product.status == 'active' else '' }}" type="submit">{{ '판매 완료로 변경' if product.status == 'active' else '판매 중으로 변경' }}</button>
+          <input type="hidden" name="status" value="sold">
+          <button class="button button-muted" type="submit">판매 완료로 변경</button>
+        </form>
+        {% elif product.status == 'sold' and current_user.is_admin %}
+        <form method="post" action="{{ url_for('products.update_status', product_id=product.id) }}" class="inline-form" data-confirm-eyebrow="상태 변경 확인" data-confirm-title="판매 중으로 되돌리시겠습니까?" data-confirm-message="관리자 권한으로 상태만 되돌립니다. 판매자의 잔액에는 영향을 끼치지 않습니다." data-confirm-accept-label="변경">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="active">
+          <button class="button button-secondary" type="submit">판매 중으로 변경</button>
         </form>
         {% endif %}
         <a class="button button-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">수정</a>
@@ -55,7 +64,7 @@
         </div>
         <p class="comment-content">{{ comment.content }}</p>
         {% if current_user.is_authenticated and (current_user.id == comment.author_id or current_user.is_admin) %}
-        <form method="post" action="{{ url_for('products.delete_comment', product_id=product.id, comment_id=comment.id) }}" data-confirm-message="이 댓글을 정말 삭제하시겠습니까?">
+        <form method="post" action="{{ url_for('products.delete_comment', product_id=product.id, comment_id=comment.id) }}" data-confirm-message="댓글을 삭제하면 복구할 수 없습니다.">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="link-button comment-delete" type="submit">삭제</button>
         </form>

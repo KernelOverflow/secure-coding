@@ -137,6 +137,9 @@ def reset_user_profile(user_id: str):
     user = db.session.get(User, validate_uuid(user_id, "사용자 ID"))
     if not user:
         abort(404)
+    # 관리자 화면에서는 본인 행의 초기화 폼 자체를 노출하지 않으므로, 직접 요청도 함께 막는다
+    if user.id == current_user.id:
+        abort(403)
     reset_bio = request.form.get("reset_bio") == "1"
     reset_image = request.form.get("reset_image") == "1"
     if not reset_bio and not reset_image:

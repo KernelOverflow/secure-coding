@@ -19,12 +19,25 @@
     <div class="field"><label for="bio">소개글</label><textarea id="bio" name="bio" maxlength="500">{{ current_user.bio }}</textarea></div>
     <button class="button" type="submit">저장</button>
   </form>
-  <form method="post" action="{{ url_for('auth.change_password') }}" class="panel form-grid">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <h2>비밀번호 변경</h2>
-    <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
-    <div class="field"><label for="new_password">새 비밀번호</label><input id="new_password" type="password" name="new_password" minlength="8" maxlength="128" autocomplete="new-password" required></div>
-    <button class="button" type="submit">비밀번호 변경</button>
-  </form>
+  <div class="profile-side">
+    <form method="post" action="{{ url_for('auth.change_password') }}" class="panel form-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <h2>비밀번호 변경</h2>
+      <div class="field"><label for="current_password">현재 비밀번호</label><input id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
+      <div class="field"><label for="new_password">새 비밀번호</label><input id="new_password" type="password" name="new_password" minlength="8" maxlength="128" autocomplete="new-password" required></div>
+      <button class="button" type="submit">비밀번호 변경</button>
+    </form>
+    {# 회원 탈퇴는 상품·거래·대화 기록을 어떻게 처리할지 정책이 아직 정해지지 않아 자리만 두고 비활성화했다 #}
+    <section class="panel account-panel">
+      <h2>계정</h2>
+      <div class="account-actions">
+        <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button button-secondary button-small" type="submit">로그아웃</button>
+        </form>
+        <button class="button button-danger button-small" type="button" disabled title="준비 중인 기능입니다">회원 탈퇴</button>
+      </div>
+    </section>
+  </div>
 </div>
 {% endblock %}

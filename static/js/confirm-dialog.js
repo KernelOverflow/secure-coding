@@ -2,9 +2,15 @@
 const confirmDialog = document.querySelector("[data-confirm-dialog]");
 
 if (confirmDialog) {
+  const eyebrow = confirmDialog.querySelector("[data-confirm-dialog-eyebrow]");
+  const title = confirmDialog.querySelector("[data-confirm-dialog-title]");
   const message = confirmDialog.querySelector("[data-confirm-dialog-message]");
   const cancelButton = confirmDialog.querySelector("[data-confirm-cancel]");
   const acceptButton = confirmDialog.querySelector("[data-confirm-accept]");
+  // 폼에 별도 문구가 없으면 기존 삭제 확인 문구를 그대로 사용한다
+  const defaultEyebrow = eyebrow.textContent;
+  const defaultTitle = title.textContent;
+  const defaultAcceptLabel = acceptButton.textContent;
   let pendingForm = null;
   let pendingSubmitter = null;
 
@@ -29,7 +35,10 @@ if (confirmDialog) {
     event.preventDefault();
     pendingForm = form;
     pendingSubmitter = event.submitter;
+    eyebrow.textContent = form.dataset.confirmEyebrow || defaultEyebrow;
+    title.textContent = form.dataset.confirmTitle || defaultTitle;
     message.textContent = form.dataset.confirmMessage;
+    acceptButton.textContent = form.dataset.confirmAcceptLabel || defaultAcceptLabel;
     confirmDialog.showModal();
   });
 

@@ -2,7 +2,23 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-head"><div><p class="eyebrow">Administration</p><h1>관리자 대시보드</h1></div>{% include "admin/_nav.html" %}</div>
+{# 개수가 0이 아닌 항목만 숫자에 밑줄을 두고 클릭하면 해당 관리 화면으로 이동한다 #}
+{% set stats = [
+  ('회원', counts.users, 'admin.users'),
+  ('상품', counts.products, 'admin.products'),
+  ('댓글', counts.comments, 'admin.comments'),
+  ('미처리 신고', counts.pending_reports, 'admin.reports'),
+  ('구매', counts.purchases, 'admin.purchases'),
+  ('거래', counts.transactions, 'admin.transactions'),
+  ('1:1 대화', counts.conversations, 'admin.conversations'),
+  ('메시지', counts.messages, 'admin.messages'),
+] %}
 <div class="stat-grid">
-  <div class="stat"><span>회원</span><strong>{{ counts.users }}</strong></div><div class="stat"><span>상품</span><strong>{{ counts.products }}</strong></div><div class="stat"><span>댓글</span><strong>{{ counts.comments }}</strong></div><div class="stat"><span>미처리 신고</span><strong>{{ counts.pending_reports }}</strong></div><div class="stat"><span>구매</span><strong>{{ counts.purchases }}</strong></div><div class="stat"><span>거래</span><strong>{{ counts.transactions }}</strong></div><div class="stat"><span>1:1 대화</span><strong>{{ counts.conversations }}</strong></div><div class="stat"><span>메시지</span><strong>{{ counts.messages }}</strong></div>
+  {% for label, value, endpoint in stats %}
+  <div class="stat">
+    <span>{{ label }}</span>
+    {% if value %}<a class="stat-value" href="{{ url_for(endpoint) }}">{{ value }}</a>{% else %}<strong class="stat-value">{{ value }}</strong>{% endif %}
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}
