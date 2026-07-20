@@ -27,6 +27,8 @@
 - 관리자 전체 목록 검색과 50개 단위 페이지 이동, 조치 사유와 감사 기록
 - CSRF, Argon2id, 객체별 권한 검사, 입력 검증, 보안 헤더, 요청 제한
 
+
+
 ### 계정 표시 정책
 
 - 회원가입 화면은 닉네임, 아이디, 비밀번호 순서로 입력합니다.
@@ -59,13 +61,57 @@ pyproject.toml      프로젝트 및 의존성 선언
 uv.lock             운영 및 개발 의존성 잠금
 ```
 
-Python 모듈과 함수·클래스에는 역할과 보안 판단을 설명하는 한국어 docstring 및 주석을 작성했습니다. JavaScript, Jinja 템플릿, CSS와 자동 테스트에도 데이터 흐름과 검증 목적을 코드 가까이에서 확인할 수 있도록 한국어 코드 리뷰 주석을 포함했습니다.
+- 코드 리뷰를 위해 대부분의 파일에 주석을 달아뒀습니다.
 
 
 
-## uv로 실행
+## 실행 방법
 
-먼저 [uv 공식 설치 안내](https://docs.astral.sh/uv/getting-started/installation/)에 따라 uv를 설치합니다. Linux, WSL 및 macOS에서는 다음 명령으로 설치할 수 있습니다.
+- 해당 프로젝트는 Docker Compose로 실행 또는 uv로 직접 실행 둘 중 하나의 방법으로 실행할 수 있습니다.
+- 또한 ngrok을 통해 외부 접속을 시현해볼 수 있습니다.
+
+
+
+### Docker Compose로 실행 (권장)
+
+- Docker Compose는 Python과 라이브러리를 호스트에 따로 설치하지 않아도 동일한 환경으로 실행할 수 있어 가장 권장하는 방법입니다.
+
+- Docker Desktop 또는 Docker Engine과 Compose 플러그인을 설치한 뒤 다음 명령을 실행합니다.
+
+```bash
+git clone https://github.com/KernelOverflow/secure-coding.git
+cd secure-coding
+docker compose up --build -d
+```
+
+이미지를 빌드하고 컨테이너를 백그라운드에서 실행합니다. 브라우저에서 `http://127.0.0.1:5000`으로 접속합니다. 컨테이너는 비루트 `market` 사용자로 실행하며 DB, 업로드 이미지와 자동 생성 비밀키는 `market_instance` 볼륨에 보관합니다.
+
+관리자 기능을 사용할 때만 다음 명령으로 관리자 계정을 생성합니다. 기본 관리자 계정이나 하드코딩된 비밀번호는 제공하지 않습니다.
+
+```bash
+docker compose exec web uv run --no-sync flask --app app create-admin
+```
+
+실행 상태와 로그는 다음 명령으로 확인합니다.
+
+```bash
+docker compose ps
+docker compose logs -f web
+```
+
+종료할 때 데이터 볼륨을 보존하려면 다음 명령을 사용합니다.
+
+```bash
+docker compose down
+```
+
+
+
+### uv로 직접 실행
+
+- Docker를 사용하지 않거나 코드를 수정하면서 개발 서버의 자동 재시작 기능을 사용하려면 uv로 직접 실행합니다.
+
+- 먼저 [uv 공식 설치 안내](https://docs.astral.sh/uv/getting-started/installation/)에 따라 uv를 설치합니다. Linux, WSL 및 macOS에서는 다음 명령으로 설치할 수 있습니다.
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -77,10 +123,10 @@ Windows에서는 PowerShell에서 다음 명령을 사용합니다.
 winget install --id=astral-sh.uv -e
 ```
 
-설치 후 운영체제와 관계없이 프로젝트 루트에서 같은 uv 명령을 사용합니다.
+설치 후 다음 명령을 실행합니다.
 
 ```bash
-git clone <본인의-public-github-repository-url>
+git clone https://github.com/KernelOverflow/secure-coding.git
 cd secure-coding
 uv sync --frozen
 uv run --frozen python app.py
@@ -105,7 +151,7 @@ uv run --frozen python app.py --host 127.0.0.1 --port 8000
 
 `0.0.0.0`으로 바인딩하면 같은 네트워크의 다른 기기에서도 접근할 수 있으므로, 방화벽과 신뢰할 수 있는 네트워크를 확인한 경우에만 사용합니다.
 
-관리자 계정은 기본 계정이나 하드코딩된 비밀번호 없이 직접 생성합니다.
+관리자 기능을 사용할 때만 새 터미널에서 다음 명령으로 관리자 계정을 생성합니다.
 
 ```bash
 uv run --frozen flask --app app create-admin
@@ -113,38 +159,20 @@ uv run --frozen flask --app app create-admin
 
 
 
-## Docker Compose로 실행
+### ngrok으로 외부 기기에서 시연 (선택)
 
-```bash
-docker compose up --build
-docker compose exec web uv run --no-sync flask --app app create-admin
-```
+- ngrok은 파일마켓을 실행하는 세 번째 방법이 아니라 이미 실행 중인 로컬 서버를 외부 기기에서 접속할 수 있게 임시 HTTPS 주소로 연결하는 보조 도구입니다.
+- 로컬 실행만 필요하다면 이 과정은 생략합니다.
 
-`http://127.0.0.1:5000`으로 접속합니다. 컨테이너는 비루트 `market` 사용자로 실행하며 DB, 업로드 및 자동 생성 비밀키는 `market_instance` 볼륨에 보관합니다.
+ngrok은 Docker 컨테이너 안이 아니라 파일마켓을 실행하는 호스트 컴퓨터에 설치하고 실행합니다. Docker Compose는 컨테이너의 5000번 포트를 호스트의 5000번 포트로 연결하고, uv 직접 실행도 호스트의 5000번 포트를 사용하므로 두 실행 방법 모두 같은 ngrok 명령을 사용합니다.
 
-종료할 때 데이터 볼륨을 보존하려면 다음 명령만 사용합니다.
-
-```bash
-docker compose down
-```
-
-
-
-## 외부 기기에서 시연
-
-ngrok 설치와 계정 인증을 완료한 뒤 애플리케이션을 실행하고 별도 터미널에서 다음 명령을 실행합니다.
+Docker Compose 또는 uv 중 한 가지 방법으로 파일마켓을 먼저 실행한 뒤 호스트 컴퓨터의 별도 터미널에서 다음 명령을 실행합니다.
 
 ```bash
 ngrok http 5000
 ```
 
-운영에 가까운 HTTPS/WSS 설정으로 확인할 때는 프록시 신뢰 범위를 ngrok 한 단계로 제한하고 보안 쿠키를 활성화합니다.
-
-```bash
-FLASK_ENV=production COOKIE_SECURE=1 TRUST_PROXY=1 uv run --frozen python app.py
-```
-
-ngrok이 제공한 HTTPS 주소를 데스크톱과 모바일에서 각각 열어 서로 다른 계정으로 1:1 채팅을 확인합니다. `TRUST_PROXY=1`은 신뢰할 수 있는 단일 역방향 프록시 뒤에서만 사용합니다.
+ngrok이 제공한 HTTPS 주소를 데스크톱과 모바일에서 각각 열어 서로 다른 계정으로 1:1 채팅과 반응형 화면을 확인할 수 있습니다. 파일마켓의 호스트 포트를 8000번처럼 변경했다면 ngrok 명령도 `ngrok http 8000`으로 맞춰야 합니다. 의도하지 않은 외부 노출을 막기 위해 ngrok은 자동으로 실행하지 않으며 시연을 마치면 `Ctrl+C`로 종료합니다. 임시 주소는 필요한 사람에게만 공유하고 실제 개인정보나 비밀번호를 입력하지 않습니다.
 
 
 
@@ -196,8 +224,6 @@ git diff --check
 - 상품, 채팅 및 관리자 기능은 로그인뿐 아니라 소유권, 대화 참여자 및 역할을 확인합니다.
 - 신고, 거래 및 관리자 조치는 감사 로그 또는 별도 거래 내역으로 기록합니다.
 - 댓글과 채팅 메시지의 관리자 조치는 원문을 보존하고 사용자 화면의 공개 상태만 변경합니다.
-
-자세한 구현, 테스트 및 잔존 위험은 `REPORT.md`, `CHECKLIST.md`, `SECURITY_CHECKLIST.md`에서 확인할 수 있습니다.
 
 
 
