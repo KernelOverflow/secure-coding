@@ -135,3 +135,35 @@ def test_socket_rejects_nonparticipant_and_accepts_participant(client, app, user
     )
     assert any(item["name"] == "chat_error" for item in other_socket.get_received())
     other_socket.disconnect()
+
+
+def test_admin_can_view_but_not_send_in_others_conversation(client, app, users, product):
+    """관리자는 당사자가 아닌 대화를 열람만 할 수 있고 메시지는 보낼 수 없는지 확인한다"""
+    login_as(client, users["buyer"])
+    client.post(f"/conversations/products/{product}/start")
+    with app.app_context():
+        conversation_id = Conversation.query.filter_by(product_id=product).one().id
+
+    login_as(client, users["admin"])
+    page = client.get(f"/conversations/{conversation_id}").get_data(as_text=True)
+    assert page  # HTTP 열람 자체는 200으로 허용된다
+    assert "관리자는 이 대화를 열람만 할 수 있습니다" in page
+
+    admin_socket = socketio.test_client(app, flask_test_client=client)
+    admin_socket.emit(
+        "join_conversation", {"conversation_id": conversation_id, "csrf_token": "test"}
+    )
+    # 열람용 room 참가는 허용되므로 join은 성공해야 한다
+    joined = admin_socket.get_received()
+    assert any(item["name"] == "conversation_joined" for item in joined), joined
+
+    admin_socket.emit(
+        "send_private_message",
+        {"conversation_id": conversation_id, "csrf_token": "test", "message": "관리자가 끼어듦"},
+    )
+    sent = admin_socket.get_received()
+    assert any(item["name"] == "chat_error" for item in sent), sent
+    assert not any(item["name"] == "private_message" for item in sent)
+    with app.app_context():
+        assert Message.query.filter_by(conversation_id=conversation_id).count() == 0
+    admin_socket.disconnect()

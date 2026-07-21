@@ -7,7 +7,23 @@
   {% else %}
   <div class="profile-avatar profile-avatar-large profile-avatar-placeholder" aria-hidden="true">{{ current_user.nickname[:1] }}</div>
   {% endif %}
-  <div><p class="eyebrow">My page</p><h1>{{ current_user.nickname }}</h1><p>현재 잔액 {{ current_user.balance_krw|krw }}</p></div>
+  <div>
+    <p class="eyebrow">My page</p>
+    {# 펜을 누르면 h1은 숨고 같은 자리에 폭이 같은 입력창이 나타나 바로 드래그·수정할 수 있다 #}
+    <form method="post" action="{{ url_for('auth.change_nickname') }}" class="nickname-row" data-nickname-form>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <h1 data-nickname-display>{{ current_user.nickname }}</h1>
+      <input type="text" name="nickname" class="nickname-input" data-nickname-input value="{{ current_user.nickname }}" minlength="2" maxlength="20" required hidden>
+      <button type="button" class="icon-button" data-nickname-edit aria-label="닉네임 수정" title="닉네임 수정">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+      </button>
+      <div class="nickname-actions" data-nickname-actions hidden>
+        <button type="submit" class="button button-small">저장</button>
+        <button type="button" class="button button-small button-secondary" data-nickname-cancel>취소</button>
+      </div>
+    </form>
+    <p>현재 잔액 {{ current_user.balance_krw|krw }}</p>
+  </div>
 </div>
 <div class="grid profile-forms">
   {# 프로필 수정과 비밀번호 변경은 목적이 달라 각각 별도의 POST 폼으로 전송한다 #}
@@ -40,4 +56,7 @@
     </section>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/nickname-edit.js') }}" defer></script>
 {% endblock %}

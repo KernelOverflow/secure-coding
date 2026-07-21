@@ -64,18 +64,21 @@ if (chatRoot && typeof io !== "undefined") {
     errorBox.textContent = data.message || "메시지를 처리하지 못했습니다.";
   });
 
-  form.addEventListener("submit", (event) => {
-    // 일반 폼 제출로 페이지가 새로고침되지 않게 하고 Socket 이벤트로 전송한다
-    event.preventDefault();
-    const message = input.value.trim();
-    // 공백뿐인 메시지는 서버에 보내지 않는다
-    if (!message) return;
-    socket.emit("send_private_message", {
-      conversation_id: conversationId,
-      csrf_token: csrfToken,
-      message,
+  // 대화 참여자가 아닌 관리자는 열람 전용이라 입력 폼 자체가 화면에 없다
+  if (form) {
+    form.addEventListener("submit", (event) => {
+      // 일반 폼 제출로 페이지가 새로고침되지 않게 하고 Socket 이벤트로 전송한다
+      event.preventDefault();
+      const message = input.value.trim();
+      // 공백뿐인 메시지는 서버에 보내지 않는다
+      if (!message) return;
+      socket.emit("send_private_message", {
+        conversation_id: conversationId,
+        csrf_token: csrfToken,
+        message,
+      });
+      // 전송 요청을 보낸 뒤 다음 메시지를 작성할 수 있도록 입력창을 비운다
+      input.value = "";
     });
-    // 전송 요청을 보낸 뒤 다음 메시지를 작성할 수 있도록 입력창을 비운다
-    input.value = "";
-  });
+  }
 }

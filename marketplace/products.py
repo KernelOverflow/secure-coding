@@ -41,11 +41,12 @@ def _can_manage(product: Product) -> bool:
 
 
 def _get_visible_product(product_id: str) -> Product:
-    """상품 UUID와 공개 권한을 확인해 현재 사용자가 볼 수 있는 상품만 반환한다"""
+    """상품 UUID와 공개 권한을 확인해 현재 사용자가 볼 수 있는 상품만 반환한다.
+    관리자는 신고·댓글·거래 이력을 추적할 수 있도록 숨김·삭제 상품도 볼 수 있다"""
     product = db.session.get(Product, validate_uuid(product_id, "상품 ID"))
-    if not product or product.status == "deleted":
+    if not product:
         abort(404)
-    if product.status == "hidden" and not _can_manage(product):
+    if product.status in {"hidden", "deleted"} and not _can_manage(product):
         abort(404)
     return product
 
@@ -335,9 +336,9 @@ def uploaded_image(filename: str):
     """공개 권한이 있는 상품의 서버 재인코딩 이미지만 응답한다"""
     # 업로드 폴더에 파일이 있더라도 실제 상품과 연결되지 않으면 직접 내려받을 수 없다
     product = Product.query.filter_by(image_filename=filename).first()
-    if not product or product.status == "deleted":
+    if not product:
         abort(404)
-    if product.status == "hidden" and not _can_manage(product):
+    if product.status in {"hidden", "deleted"} and not _can_manage(product):
         abort(404)
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER"],

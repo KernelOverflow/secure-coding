@@ -52,9 +52,9 @@ def search_users():
 @bp.get("/<user_id>")
 @login_required
 def view_user(user_id: str):
-    """차단되지 않은 회원의 공개 프로필과 송금 폼을 보여준다"""
+    """차단되지 않은 회원의 공개 프로필과 송금 폼을 보여준다. 관리자는 이력 확인을 위해 차단된 회원도 볼 수 있다"""
     user = db.session.get(User, validate_uuid(user_id, "사용자 ID"))
-    if not user or user.status == "banned":
+    if not user or (user.status == "banned" and not current_user.is_admin):
         abort(404)
     return render_template(
         "users/detail.html", user=user, transfer_key=str(uuid.uuid4())

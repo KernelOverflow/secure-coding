@@ -256,6 +256,37 @@ def profile():
     return render_template("auth/profile.html")
 
 
+@bp.post("/profile/nickname")
+@login_required
+@limiter.limit("10 per hour")
+def change_nickname():
+    """공개 닉네임을 검증한 뒤 중복이 없으면 바꾸고 감사 로그를 남긴다"""
+    try:
+        # 관리자 자신은 이미 관리자 사칭 예약어로 가입되어 있으므로 그대로 유지할 수 있게 허용한다
+        nickname = validate_nickname(
+            request.form.get("nickname", ""), allow_reserved=current_user.is_admin
+        )
+    except ValidationError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("auth.profile"))
+
+    key = nickname_key(nickname)
+    if key != nickname_key(current_user.nickname) and User.query.filter_by(
+        nickname_normalized=key
+    ).first():
+        flash("이미 사용 중인 닉네임입니다.", "error")
+        return redirect(url_for("auth.profile"))
+
+    current_user.nickname = nickname
+    current_user.nickname_normalized = key
+    add_audit_log(
+        "profile.nickname_changed", "user", current_user.id, "닉네임 변경", actor_id=current_user.id
+    )
+    db.session.commit()
+    flash("닉네임을 변경했습니다.", "success")
+    return redirect(url_for("auth.profile"))
+
+
 @bp.post("/profile/password")
 @login_required
 @limiter.limit("5 per hour")

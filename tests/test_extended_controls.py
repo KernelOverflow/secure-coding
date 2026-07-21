@@ -1,4 +1,4 @@
-"""CSRF, 로그인 잠금, 이미지, 신고, 거래 정정, 동시 구매와 검색 성능을 검증한다"""
+"""CSRF, 로그인 잠금, 이미지, 신고, 동시 구매와 검색 성능을 검증한다"""
 
 import io
 import time
@@ -204,35 +204,6 @@ def test_three_distinct_reports_suspend_user(client, app, users):
         )
     with app.app_context():
         assert db.session.get(User, target).status == "suspended"
-
-
-def test_admin_reversal_records_new_adjustment(client, app, users):
-    """관리자 정정이 원본 삭제 대신 반대 방향 adjustment 거래를 만드는지 확인한다"""
-    login_as(client, users["buyer"])
-    client.post(
-        f"/users/{users['seller']}/transfer",
-        data={
-            "amount": "50000",
-            "idempotency_key": str(uuid.uuid4()),
-            "current_password": TEST_PASSWORD,
-            "note": "정정 예정 거래",
-        },
-    )
-    with app.app_context():
-        original_id = MoneyTransaction.query.filter_by(kind="transfer").one().id
-    login_as(client, users["admin"])
-    response = client.post(
-        f"/admin/transactions/{original_id}/reverse",
-        data={
-            "idempotency_key": str(uuid.uuid4()),
-            "reason": "사용자의 오송금 신고를 확인하여 정정합니다.",
-        },
-    )
-    assert response.status_code == 302
-    with app.app_context():
-        assert db.session.get(User, users["buyer"]).balance_krw == 1_000_000
-        assert db.session.get(User, users["seller"]).balance_krw == 1_000_000
-        assert MoneyTransaction.query.filter_by(kind="adjustment", reference_id=original_id).count() == 1
 
 
 def test_only_one_buyer_can_claim_product(client, app, users, product):

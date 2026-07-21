@@ -106,6 +106,40 @@ button, input, textarea, select, code { font: inherit; }
 .chat-product-thumb { width: 156px; height: 156px; border-radius: var(--radius); object-fit: cover; flex-shrink: 0; background: #e5e8e3; font-size: 0.8rem; }
 .profile-heading { align-items: center; justify-content: flex-start; }
 .profile-heading-text { flex: 1; }
+.nickname-row { display: flex; align-items: center; gap: 10px; margin: 0; }
+.nickname-row h1 { margin: 0; line-height: 1; }
+.nickname-input {
+  width: min(70vw, 340px);
+  padding: 0 2px;
+  border: none;
+  border-bottom: 2px solid var(--primary);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.nickname-input:focus { outline: none; border-bottom-color: var(--primary-dark); }
+.nickname-actions { display: flex; gap: 8px; }
+.nickname-actions[hidden] { display: none; }
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 0.3em;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.icon-button:hover { color: var(--primary-dark); border-color: var(--primary); }
+.icon-button[hidden] { display: none; }
 .profile-avatar {
   width: 64px;
   height: 64px;
@@ -282,6 +316,8 @@ table { width: 100%; border-collapse: collapse; min-width: 760px; }
 th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
 td.wrap-cell { white-space: normal; }
 .user-cell a { display: block; font-weight: 750; }
+/* 관리자 화면 어디서든 클릭 가능한 회원 닉네임을 같은 초록색과 굵기로 표시한다 */
+.nickname-link { color: var(--primary-dark); font-weight: 750; }
 .user-cell small { display: block; margin-top: 3px; font-size: 0.85rem; }
 th { background: #f1f4f0; }
 .compact-form { display: grid; grid-template-columns: minmax(110px, 1fr) 2fr auto; gap: 8px; min-width: 430px; }

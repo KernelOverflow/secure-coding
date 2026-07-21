@@ -1,6 +1,5 @@
-"""관리자가 회원, 상품, 신고, 거래, 채팅과 감사 기록을 관리하는 기능이다"""
+"""관리자가 회원, 상품, 신고, 구매, 채팅과 감사 기록을 관리하는 기능이다"""
 
-import uuid
 from functools import wraps
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -12,7 +11,6 @@ from .models import (
     AuditLog,
     Conversation,
     Message,
-    MoneyTransaction,
     Product,
     ProductComment,
     Purchase,
@@ -20,8 +18,14 @@ from .models import (
     User,
     utc_now,
 )
-from .security import ValidationError, delete_uploaded_image, validate_text, validate_uuid
-from .services import TransactionError, add_audit_log, reverse_transaction
+from .security import (
+    ValidationError,
+    delete_uploaded_image,
+    validate_optional_text,
+    validate_text,
+    validate_uuid,
+)
+from .services import add_audit_log
 
 
 # 모든 관리자 URL에 /admin 접두사를 붙여 일반 기능과 구분한다
@@ -67,7 +71,6 @@ def dashboard():
         "users": User.query.count(),
         "products": Product.query.count(),
         "pending_reports": Report.query.filter_by(status="pending").count(),
-        "transactions": MoneyTransaction.query.count(),
         "conversations": Conversation.query.count(),
         "comments": ProductComment.query.count(),
         "messages": Message.query.count(),
@@ -107,7 +110,8 @@ def update_user_status(user_id: str):
     if status not in {"active", "suspended", "banned"}:
         abort(400)
     try:
-        reason = validate_text(request.form.get("reason", ""), "조치 사유", 5, 500)
+        # 조치 사유는 남기면 감사 로그에 함께 기록되지만, 비워 둔 채로도 조치할 수 있다
+        reason = validate_optional_text(request.form.get("reason", ""), "조치 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.users"))
@@ -121,7 +125,7 @@ def update_user_status(user_id: str):
         "admin.user_status",
         "user",
         user.id,
-        f"{status}: {reason}",
+        f"{status}: {reason}" if reason else status,
         actor_id=current_user.id,
     )
     db.session.commit()
@@ -146,7 +150,8 @@ def reset_user_profile(user_id: str):
         flash("초기화할 프로필 항목을 선택해 주세요.", "error")
         return redirect(url_for("admin.users"))
     try:
-        reason = validate_text(request.form.get("reason", ""), "조치 사유", 5, 500)
+        # 초기화 사유도 남기면 감사 로그에 함께 기록되지만, 비워 둔 채로도 초기화할 수 있다
+        reason = validate_optional_text(request.form.get("reason", ""), "초기화 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.users"))
@@ -163,7 +168,7 @@ def reset_user_profile(user_id: str):
         "admin.user_profile_reset",
         "user",
         user.id,
-        f"{targets}: {reason}",
+        f"{targets}: {reason}" if reason else targets,
         actor_id=current_user.id,
     )
     db.session.commit()
@@ -201,7 +206,7 @@ def update_product_status(product_id: str):
     if status not in {"active", "hidden", "deleted"}:
         abort(400)
     try:
-        reason = validate_text(request.form.get("reason", ""), "조치 사유", 5, 500)
+        reason = validate_optional_text(request.form.get("reason", ""), "조치 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.products"))
@@ -214,7 +219,7 @@ def update_product_status(product_id: str):
         "admin.product_status",
         "product",
         product.id,
-        f"{status}: {reason}",
+        f"{status}: {reason}" if reason else status,
         actor_id=current_user.id,
     )
     db.session.commit()
@@ -255,7 +260,7 @@ def resolve_report(report_id: str):
     if status not in {"resolved", "dismissed"}:
         abort(400)
     try:
-        reason = validate_text(request.form.get("reason", ""), "처리 사유", 5, 500)
+        reason = validate_optional_text(request.form.get("reason", ""), "처리 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.reports"))
@@ -267,60 +272,12 @@ def resolve_report(report_id: str):
         "admin.report_resolved",
         "report",
         report.id,
-        f"{status}: {reason}",
+        f"{status}: {reason}" if reason else status,
         actor_id=current_user.id,
     )
     db.session.commit()
     flash("신고를 처리했습니다.", "success")
     return redirect(url_for("admin.reports"))
-
-
-@bp.get("/transactions")
-@admin_required
-def transactions():
-    """거래 목록과 각 거래 정정에 사용할 일회성 UUID를 함께 준비한다"""
-    query = MoneyTransaction.query
-    search = _search_term()
-    if search:
-        query = query.filter(
-            or_(
-                MoneyTransaction.note.contains(search, autoescape=True),
-                MoneyTransaction.id.contains(search, autoescape=True),
-            )
-        )
-    pagination = _paginate(query.order_by(MoneyTransaction.created_at.desc()))
-    items = pagination.items
-    return render_template(
-        "admin/transactions.html",
-        transactions=items,
-        correction_keys={item.id: str(uuid.uuid4()) for item in items},
-        pagination=pagination,
-        search=search,
-    )
-
-
-@bp.post("/transactions/<transaction_id>/reverse")
-@admin_required
-@limiter.limit("10 per hour")
-def reverse(transaction_id: str):
-    """원본을 수정하지 않고 반대 방향의 새 거래로 잘못된 거래를 정정한다"""
-    transaction = db.session.get(
-        MoneyTransaction, validate_uuid(transaction_id, "거래 ID")
-    )
-    if not transaction:
-        abort(404)
-    try:
-        reason = validate_text(request.form.get("reason", ""), "정정 사유", 10, 500)
-        idempotency_key = validate_uuid(
-            request.form.get("idempotency_key", ""), "요청 식별자"
-        )
-        # 실제 잔액 이동과 중복 정정 방지는 서비스 계층이 하나의 트랜잭션으로 처리한다
-        reverse_transaction(transaction, current_user.id, reason, idempotency_key)
-    except (ValidationError, TransactionError) as exc:
-        flash(str(exc), "error")
-        return redirect(url_for("admin.transactions"))
-    flash("반대 방향의 정정 거래를 기록했습니다.", "success")
-    return redirect(url_for("admin.transactions"))
 
 
 @bp.get("/conversations")
@@ -340,6 +297,35 @@ def conversations():
         pagination=pagination,
         search=search,
     )
+
+
+@bp.post("/conversations/<conversation_id>/delete")
+@admin_required
+@limiter.limit("30 per minute")
+def delete_conversation(conversation_id: str):
+    """대화방과 안의 메시지를 모두 하드 삭제해 복구할 수 없게 완전히 제거한다"""
+    conversation = db.session.get(
+        Conversation, validate_uuid(conversation_id, "대화방 ID")
+    )
+    if not conversation:
+        abort(404)
+    # Conversation, Message 외에 conversation_id를 외래키로 참조하는 테이블은 없으므로
+    # Message.conversation ORM 관계의 cascade="all, delete-orphan"만으로 메시지까지 함께 지워진다
+    message_count = conversation.messages.count()
+    conversation_id_value = conversation.id
+    product_id = conversation.product_id
+    # 삭제 전에 무엇을 지웠는지 감사 로그로 먼저 남긴다. 삭제 후에는 대상이 사라져 조회할 수 없다
+    add_audit_log(
+        "admin.conversation_deleted",
+        "conversation",
+        conversation_id_value,
+        f"상품 {product_id} 대화방과 메시지 {message_count}건 완전 삭제",
+        actor_id=current_user.id,
+    )
+    db.session.delete(conversation)
+    db.session.commit()
+    flash("대화방과 메시지를 완전히 삭제했습니다.", "success")
+    return redirect(url_for("admin.conversations"))
 
 
 @bp.get("/comments")
@@ -376,7 +362,7 @@ def update_comment_status(comment_id: str):
     if status not in {"active", "deleted"}:
         abort(400)
     try:
-        reason = validate_text(request.form.get("reason", ""), "조치 사유", 5, 500)
+        reason = validate_optional_text(request.form.get("reason", ""), "조치 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.comments"))
@@ -385,7 +371,7 @@ def update_comment_status(comment_id: str):
         "admin.comment_status",
         "product_comment",
         comment.id,
-        f"{status}: {reason}",
+        f"{status}: {reason}" if reason else status,
         actor_id=current_user.id,
     )
     db.session.commit()
@@ -428,7 +414,7 @@ def update_message_status(message_id: str):
     if status not in {"active", "deleted"}:
         abort(400)
     try:
-        reason = validate_text(request.form.get("reason", ""), "조치 사유", 5, 500)
+        reason = validate_optional_text(request.form.get("reason", ""), "조치 사유", 0, 500)
     except ValidationError as exc:
         flash(str(exc), "error")
         return redirect(url_for("admin.messages"))
@@ -437,7 +423,7 @@ def update_message_status(message_id: str):
         "admin.message_status",
         "message",
         message.id,
-        f"{status}: {reason}",
+        f"{status}: {reason}" if reason else status,
         actor_id=current_user.id,
     )
     db.session.commit()

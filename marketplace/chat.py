@@ -25,11 +25,19 @@ message_windows: dict[str, deque[float]] = defaultdict(deque)
 message_window_lock = Lock()
 
 
+def _is_participant(conversation: Conversation) -> bool:
+    """현재 사용자가 이 대화의 실제 구매자 또는 판매자인지 확인한다"""
+    return current_user.is_authenticated and current_user.id in {
+        conversation.buyer_id,
+        conversation.seller_id,
+    }
+
+
 def _can_access(conversation: Conversation) -> bool:
-    """현재 사용자가 대화 참여자이거나 관리자인지 객체 단위로 확인한다"""
+    """열람은 참여자와 관리자 모두에게 허용한다. 메시지 전송은 실제 참여자만 가능하며 관리자라고
+    자동으로 열리지 않으므로 전송 권한을 확인할 때는 이 함수 대신 _is_participant를 사용한다"""
     return current_user.is_authenticated and (
-        current_user.is_admin
-        or current_user.id in {conversation.buyer_id, conversation.seller_id}
+        current_user.is_admin or _is_participant(conversation)
     )
 
 
@@ -134,7 +142,10 @@ def view_conversation(conversation_id: str):
         .all()
     )
     return render_template(
-        "chat/detail.html", conversation=conversation, messages=messages
+        "chat/detail.html",
+        conversation=conversation,
+        messages=messages,
+        is_participant=_is_participant(conversation),
     )
 
 
@@ -186,8 +197,9 @@ def send_private_message_event(data):
         emit("chat_error", {"message": "메시지 형식이 올바르지 않습니다."})
         return
     conversation = db.session.get(Conversation, conversation_id)
-    if not conversation or not _can_access(conversation):
-        emit("chat_error", {"message": "대화방 접근 권한이 없습니다."})
+    # 관리자도 실제 구매자·판매자가 아니면 열람만 가능하고 남의 대화에 메시지를 보낼 수는 없다
+    if not conversation or not _is_participant(conversation):
+        emit("chat_error", {"message": "대화 참여자만 메시지를 보낼 수 있습니다."})
         return
 
     # 발신자는 클라이언트 값이 아니라 검증된 current_user로 고정해 사칭을 막는다

@@ -1,12 +1,12 @@
-{# 관리자가 상품과 거래에 연결된 전체 구매 기록을 수정 없이 확인하는 화면이다 #}
+{# 관리자가 상품 구매 기록을 수정 없이 확인하는 화면이다 #}
 {% extends "base.html" %}
 {% from "admin/_pagination.html" import render_pagination %}
 {% from "admin/_search.html" import render_admin_search %}
 {% block content %}
-<div class="page-head"><div><p class="eyebrow">Administration</p><h1>구매 관리</h1><p>구매 기록은 삭제되지 않으며 거래 관리에서 반대 방향의 정정 거래를 남깁니다.</p></div>{% include "admin/_nav.html" %}</div>
+<div class="page-head"><div><p class="eyebrow">Administration</p><h1>구매 관리</h1><p>완료된 상품 구매 기록과 연결된 거래 ID를 확인합니다.</p></div>{% include "admin/_nav.html" %}</div>
 {{ render_admin_search('admin.purchases', search, '구매 상품명 검색') }}
 <div class="table-wrap"><table><thead><tr><th>구매 시각</th><th>상품</th><th>구매자</th><th>판매자</th><th>금액</th><th>상태</th><th>거래 ID</th></tr></thead><tbody>
-{% for item in purchases %}<tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ item.product.title }}</td><td>{{ item.buyer.nickname }}</td><td>{{ item.seller.nickname }}</td><td>{{ item.amount_krw|krw }}</td><td>{{ '완료' if item.status == 'completed' else '정정됨' }}</td><td><code>{{ item.transaction_id }}</code></td></tr>
+{% for item in purchases %}<tr><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td><a href="{{ url_for('products.view_product', product_id=item.product.id) }}">{{ item.product.title }}</a></td><td><a class="nickname-link" href="{{ url_for('users.view_user', user_id=item.buyer.id) }}">{{ item.buyer.nickname }}</a></td><td><a class="nickname-link" href="{{ url_for('users.view_user', user_id=item.seller.id) }}">{{ item.seller.nickname }}</a></td><td>{{ item.amount_krw|krw }}</td><td>완료</td><td><code>{{ item.transaction_id }}</code></td></tr>
 {% else %}<tr><td colspan="7">구매 기록이 없습니다.</td></tr>{% endfor %}
 </tbody></table></div>
 {{ render_pagination(pagination, 'admin.purchases', search) }}

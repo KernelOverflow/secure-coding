@@ -145,7 +145,7 @@ def purchase_product(
 
         # 상품 선점에 성공한 뒤 DB 가격만큼 구매자에서 판매자로 잔액을 이동한다
         _move_balance(buyer_id, product.seller_id, product.price_krw)
-        # 일반 거래 원장과 상품 전용 구매 기록을 모두 남겨 이후 정정과 조회에 사용한다
+        # 일반 거래 원장과 상품 전용 구매 기록을 함께 남겨 조회에 사용한다
         transaction = MoneyTransaction(
             sender_id=buyer_id,
             receiver_id=product.seller_id,
@@ -229,44 +229,3 @@ def apply_report_threshold(target_type: str, target_id: str) -> int:
                 "서로 다른 사용자 3명 이상의 신고",
             )
     return count
-
-
-def reverse_transaction(
-    original: MoneyTransaction, admin_id: str, reason: str, idempotency_key: str
-) -> MoneyTransaction:
-    """완료 거래를 수정하지 않고 반대 방향의 adjustment 거래로 정정한다"""
-    if not original.sender_id or not original.receiver_id:
-        raise TransactionError("정정할 수 없는 거래입니다.")
-    # 같은 원본을 여러 번 정정해 잔액이 반복 이동하는 일을 막는다
-    if MoneyTransaction.query.filter_by(reference_id=original.id, kind="adjustment").first():
-        raise TransactionError("이미 정정된 거래입니다.")
-
-    try:
-        # 원래 수신자가 송신자에게 같은 금액을 돌려주는 새 거래를 만든다
-        _move_balance(original.receiver_id, original.sender_id, original.amount_krw)
-        correction = MoneyTransaction(
-            sender_id=original.receiver_id,
-            receiver_id=original.sender_id,
-            amount_krw=original.amount_krw,
-            kind="adjustment",
-            idempotency_key=idempotency_key,
-            reference_id=original.id,
-            note=f"관리자 정정: {reason}",
-        )
-        db.session.add(correction)
-        # 상품 구매였다면 연결된 구매 상태도 reversed로 표시하되 원본 행은 보존한다
-        purchase = Purchase.query.filter_by(transaction_id=original.id).first()
-        if purchase:
-            purchase.status = "reversed"
-        add_audit_log(
-            "transaction.reversed",
-            "transaction",
-            original.id,
-            reason,
-            actor_id=admin_id,
-        )
-        db.session.commit()
-        return correction
-    except Exception:
-        db.session.rollback()
-        raise

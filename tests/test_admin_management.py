@@ -27,12 +27,13 @@ def test_admin_can_open_every_management_section(client, users):
         "/admin/comments",
         "/admin/reports",
         "/admin/purchases",
-        "/admin/transactions",
         "/admin/conversations",
         "/admin/messages",
         "/admin/audit-logs",
     ):
         assert client.get(path).status_code == 200, path
+    # 제거한 관리자 거래 관리 화면이 다시 노출되지 않는지 확인한다
+    assert client.get("/admin/transactions").status_code == 404
 
 
 def test_admin_hides_and_restores_product_comment(client, app, users, product):
@@ -124,7 +125,59 @@ def test_admin_hides_chat_message_but_preserves_original(client, app, users, pro
         f"/admin/messages?conversation_id={conversation_id}"
     ).get_data(as_text=True)
     assert "관리자가 숨길 채팅 메시지" in admin_page
-    assert "숨김" in admin_page
+
+
+def test_admin_hard_deletes_conversation_and_its_messages(client, app, users, product):
+    """관리자의 대화방 삭제는 소프트 삭제가 아니라 대화방과 메시지를 DB에서 완전히 지우는지 확인한다"""
+    with app.app_context():
+        conversation = Conversation(
+            product_id=product,
+            buyer_id=users["buyer"],
+            seller_id=users["seller"],
+        )
+        db.session.add(conversation)
+        db.session.flush()
+        db.session.add_all(
+            [
+                Message(
+                    conversation_id=conversation.id,
+                    sender_id=users["buyer"],
+                    content="완전히 삭제될 메시지 1",
+                ),
+                Message(
+                    conversation_id=conversation.id,
+                    sender_id=users["seller"],
+                    content="완전히 삭제될 메시지 2",
+                ),
+            ]
+        )
+        db.session.commit()
+        conversation_id = conversation.id
+
+    # 일반 회원은 대화방 삭제 자체를 시도할 수 없다
+    login_as(client, users["buyer"])
+    denied = client.post(f"/admin/conversations/{conversation_id}/delete")
+    assert denied.status_code == 403
+    with app.app_context():
+        assert db.session.get(Conversation, conversation_id) is not None
+
+    login_as(client, users["admin"])
+    response = client.post(f"/admin/conversations/{conversation_id}/delete")
+    assert response.status_code == 302
+
+    with app.app_context():
+        # 대화방과 메시지 행이 DB에서 실제로 사라졌는지 확인한다 (소프트 삭제라면 행은 남아있어야 한다)
+        assert db.session.get(Conversation, conversation_id) is None
+        assert Message.query.filter_by(conversation_id=conversation_id).count() == 0
+        # 삭제 사실 자체는 감사 로그에 남아 있어야 한다
+        log = AuditLog.query.filter_by(
+            action="admin.conversation_deleted", target_id=conversation_id
+        ).one()
+        assert "메시지 2건" in log.reason
+
+    # 삭제된 대화방은 참여자에게도 더 이상 존재하지 않는다
+    login_as(client, users["buyer"])
+    assert client.get(f"/conversations/{conversation_id}").status_code == 404
 
 
 def test_admin_resets_profile_content_and_removes_image_file(client, app, users):

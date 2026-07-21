@@ -8,12 +8,12 @@
 <div class="table-wrap"><table><thead><tr><th>상품</th><th>작성자</th><th>댓글</th><th>작성 시각</th><th>상태</th><th>관리</th></tr></thead><tbody>
 {% for comment in comments %}
 <tr>
-  <td>{{ comment.product.title }}</td>
-  <td>{{ comment.author.nickname }}</td>
+  <td><a href="{{ url_for('products.view_product', product_id=comment.product.id) }}">{{ comment.product.title }}</a></td>
+  <td><a class="nickname-link" href="{{ url_for('users.view_user', user_id=comment.author.id) }}">{{ comment.author.nickname }}</a></td>
   <td class="moderation-content">{{ comment.content }}</td>
   <td>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
   <td>{{ '공개' if comment.status == 'active' else '숨김' }}</td>
-  <td><form class="compact-form" method="post" action="{{ url_for('admin.update_comment_status', comment_id=comment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="active"{% if comment.status == 'active' %} selected{% endif %}>공개</option><option value="deleted"{% if comment.status == 'deleted' %} selected{% endif %}>숨김</option></select><input name="reason" minlength="5" maxlength="500" placeholder="조치 사유" required><button class="button button-small" type="submit">변경</button></form></td>
+  <td><form class="compact-form" method="post" action="{{ url_for('admin.update_comment_status', comment_id=comment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status"><option value="active"{% if comment.status == 'active' %} selected{% endif %}>공개</option><option value="deleted"{% if comment.status == 'deleted' %} selected{% endif %}>숨김</option></select><input name="reason" maxlength="500" placeholder="조치 사유"><button class="button button-small" type="submit">변경</button></form></td>
 </tr>
 {% else %}<tr><td colspan="6">등록된 댓글이 없습니다.</td></tr>{% endfor %}
 </tbody></table></div>

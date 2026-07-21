@@ -34,7 +34,11 @@
     {% endfor %}
   </ul>
   <p class="chat-error" data-chat-error aria-live="polite"></p>
+  {% if is_participant %}
   <form class="chat-form" data-chat-form><input data-chat-input maxlength="1000" autocomplete="off" placeholder="메시지를 입력하세요" aria-label="메시지" required><button class="button" type="submit">전송</button></form>
+  {% else %}
+  <p class="muted">관리자는 이 대화를 열람만 할 수 있습니다. 참여자가 아니므로 메시지를 보낼 수 없습니다.</p>
+  {% endif %}
 </section>
 {% endblock %}
 {% block scripts %}

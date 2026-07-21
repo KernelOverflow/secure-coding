@@ -220,7 +220,7 @@ class Report(db.Model):
 
 
 class MoneyTransaction(db.Model):
-    """송금, 구매, 관리자 정정으로 발생한 모든 잔액 이동을 삭제 없이 기록한다"""
+    """회원 송금과 상품 구매로 발생한 잔액 이동을 삭제 없이 기록한다"""
 
     __tablename__ = "money_transaction"
 
@@ -241,7 +241,7 @@ class MoneyTransaction(db.Model):
     __table_args__ = (
         CheckConstraint("amount_krw > 0", name="ck_transaction_amount_positive"),
         CheckConstraint(
-            "kind IN ('transfer', 'purchase', 'adjustment')", name="ck_transaction_kind"
+            "kind IN ('transfer', 'purchase')", name="ck_transaction_kind"
         ),
     )
 
@@ -272,7 +272,7 @@ class Purchase(db.Model):
     # 한 상품은 한 번만 구매되고 한 거래도 한 구매에만 연결되도록 제한한다
     __table_args__ = (
         CheckConstraint("amount_krw > 0", name="ck_purchase_amount_positive"),
-        CheckConstraint("status IN ('completed', 'reversed')", name="ck_purchase_status"),
+        CheckConstraint("status = 'completed'", name="ck_purchase_status"),
     )
 
 
